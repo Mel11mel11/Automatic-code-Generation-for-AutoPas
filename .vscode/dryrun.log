@@ -1,0 +1,7 @@
+make --dry-run --keep-going --print-directory
+make: Entering directory `/Users/melisaaslan/Desktop/Thesis'
+clang++ -std=c++17 -O2 -Wall -Wextra -pedantic \
+		test_main.cpp generated_force.cpp generated_gravity.cpp -o tests
+./tests
+make: Leaving directory `/Users/melisaaslan/Desktop/Thesis'
+ 
