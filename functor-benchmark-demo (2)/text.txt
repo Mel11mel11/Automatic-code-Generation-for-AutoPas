@@ -1,0 +1,2 @@
+C++’ta functor = “fonksiyon gibi davranan bir sınıf”.
+potansiyel türü” (örneğin Lennard-Jones, Gravity, Mie) bir functor class.

@@ -1,0 +1,9 @@
+make --dry-run --always-make --keep-going --print-directory
+make: Entering directory `/Users/melisaaslan/Desktop/functor-benchmark-demo (2)'
+g++ -std=c++17 -O3 -Wall -Wextra -march=native -I. -IFunctors -Igenerated_files -DMIE_SAFE             -c main.cpp -o main.o
+g++ -std=c++17 -O3 -Wall -Wextra -march=native -I. -IFunctors -Igenerated_files -DMIE_SAFE             -c generated_files/generated_force.cpp -o generated_files/generated_force.o
+g++ -std=c++17 -O3 -Wall -Wextra -march=native -I. -IFunctors -Igenerated_files -DMIE_SAFE             -c generated_files/generated_gravity.cpp -o generated_files/generated_gravity.o
+g++ -std=c++17 -O3 -Wall -Wextra -march=native -I. -IFunctors -Igenerated_files -DMIE_SAFE             -c generated_files/generated_mie.cpp -o generated_files/generated_mie.o
+g++ -std=c++17 -O3 -Wall -Wextra -march=native -I. -IFunctors -Igenerated_files -DMIE_SAFE             main.o generated_files/generated_force.o generated_files/generated_gravity.o generated_files/generated_mie.o -o benchmark
+make: Leaving directory `/Users/melisaaslan/Desktop/functor-benchmark-demo (2)'
+ 
