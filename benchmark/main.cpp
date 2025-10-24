@@ -5,12 +5,11 @@
 
 // Reference LJ
 #include "Functors/LJFunctorReference.h"
-// Generated functors
 #include "Functors/LJFunctorGenerated.h"
 #include "Functors/MieFunctorGenerated.h"
+#include "Functors/MieFunctorReference.h"
 #include "Functors/GravFunctorGenerated.h"
 #include "Functors/GravFunctorReference.h"
-#include "Functors/MieFunctorReference.h"
 
 #include <vector>
 #include <random>
@@ -37,7 +36,7 @@ int main(int argc,char** argv){
 
     const size_t N = (argc>=3)? static_cast<size_t>(std::stoull(argv[2])) : 10000;
 
-    // Parçacıklar
+    
     std::vector<ParticleType> ps; ps.reserve(N);
     std::mt19937_64 rng(44);
     std::uniform_real_distribution<double> U(0.0,1.0);
@@ -49,13 +48,13 @@ int main(int argc,char** argv){
     std::cout<<std::fixed<<std::setprecision(6);
 
     auto bench = [&](const std::string& name, auto& functor){
-        zero_all(ps);
+        zero_all(ps); // make zero all particles
         long t_ns = runPairs(ps, functor);
         double sum = checksumFx(ps);
         std::cout << name << "  N="<<N<<"  time="<<(t_ns/1e6)<<" ms  sumFx="<<sum << "\n";
     };
 
-    // Parametreler
+    
     const double sigma=1.0, epsilon=1.0;
     const int n=12, m=6;
     const double G=6.67430e-11;
@@ -83,3 +82,5 @@ int main(int argc,char** argv){
     }
     return 0;
 }
+
+//TODO: arguments n and m  for command line
