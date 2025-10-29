@@ -131,8 +131,8 @@ int main(int argc,char** argv){
     const double G=6.67430e-11;
     sanity_one_pair();
     if (mode=="lj" || mode=="all"){
-        LJFunctorReference<ParticleType> ref(sigma,epsilon, true);
-        LJFunctorGenerated<ParticleType> gen(sigma,epsilon,true);
+        LJFunctorReference<ParticleType> ref(sigma,epsilon, false);
+        LJFunctorGenerated<ParticleType> gen(sigma,epsilon,false);
         bench("LJ-REF ", ref);
         bench("LJ-GEN ", gen);
     }
