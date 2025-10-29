@@ -23,11 +23,14 @@ public:
         const double dz = r1[2]-r2[2];
 
         double r2sq = dx*dx + dy*dy + dz*dz;
-        if (r2sq < 1e-24) r2sq = 1e-24;      // softening (stability)
+        
+        constexpr double minR2 = 1e-8;
+        if (r2sq < minR2) r2sq = minR2;
+              // softening (stability)
         const double r = std::sqrt(r2sq);
         //const double mag = lj::computeForce(r, _epsilon, _sigma);
         //const std::array<double,3> F{ -mag*dx, -mag*dy, -mag*dz };  // <-- eksi eklendi
-        const double mag =  lj::computeForce(r, _epsilon, _sigma);
+        const double mag =  - lj::computeForce(r, _epsilon, _sigma);
         const double inv_r = 1.0 / r;
         const std::array<double,3> F{ mag * dx * inv_r,
                               mag * dy * inv_r,

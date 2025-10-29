@@ -24,6 +24,28 @@ using ParticleType = Particle;
 static void zero_all(std::vector<ParticleType>& ps){
     for (auto& p : ps) p.setF(std::array<double,3>{0.0, 0.0, 0.0});
 }
+static std::array<double,3> sumAllTwoWays(const std::vector<Particle>& ps){
+    long double s_arr = 0.0L, s_get = 0.0L, maxAbs = 0.0L;
+    size_t maxIdx = (size_t)-1, nonFinite = 0;
+    for(size_t i=0;i<ps.size();++i){
+        const auto  f  = ps[i].getF();   // std::array<double,3>
+        const double fx_arr = f[0];
+        const double fx_get = ps[i].getFx(); // tek-bileşen getter
+
+        if(!std::isfinite(fx_arr) || !std::isfinite(fx_get)) ++nonFinite;
+
+        s_arr += fx_arr;
+        s_get += fx_get;
+
+        long double a = std::fabsl((long double)fx_arr);
+        if (a > maxAbs){ maxAbs = a; maxIdx = i; }
+    }
+    std::cerr << "[DBG] sumFx(arr[0])="<<(double)s_arr
+              << " sumFx(getFx)="<<(double)s_get
+              << " nonFinite="<<nonFinite
+              << " max|Fx|="<<(double)maxAbs<<" @idx="<<maxIdx << "\n";
+    return { (double)s_arr, (double)s_get, (double)maxAbs };
+}
 
 static double checksumFx(const std::vector<Particle>& ps){
     double s = 0.0;
@@ -48,6 +70,7 @@ static long runPairs(std::vector<ParticleType>& ps, F& functor){
     t.stop(); return t.getTotalTime(); // ns
 }
 
+
 int main(int argc,char** argv){
 // create a command line
     const std::string mode = (argc>=2)? argv[1] : "all"; 
@@ -71,6 +94,8 @@ int main(int argc,char** argv){
      std::cout << "[DBG] after zero_all sumFx=" << checksumFx(ps) << "\n";
 
     long t_ns = runPairs(ps, functor);
+    auto sums = sumAllTwoWays(ps);  // iki farklı toplam + max|Fx|
+    //double sum = sums[0]; 
     double sum = checksumFx(ps);
     std::cout << name << "  N="<<N<<"  time="<<(t_ns/1e6)<<" ms  sumFx="<<sum << "\n";
     };
