@@ -26,10 +26,9 @@ public:
         lj6 = lj6 * lj6 * lj6;                    // (sigma^6 / r^6)
         double lj12 = lj6 * lj6;                  // (sigma^12 / r^12)
         double lj12m6 = lj12 - lj6;               // (sigma^12 - sigma^6)
-        //std::cout << "lj12m6: " << lj12m6 << std::endl;
         double fac = _epsilon24 * (lj12 + lj12m6) * invdr2; // dV/dr factor
-        auto F = dr * fac;  
-                             
+        auto F = dr * fac;   // multiply vector by scalar to get force vector
+
         p1.addF(F);
         if (_newton3) p2.subF(F);                 
     }

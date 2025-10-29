@@ -102,7 +102,7 @@ int main(int argc,char** argv){
 
     
     const double sigma=1.0, epsilon=1.0;
-    const int n=12, m=6;
+    const int n=7, m=6;
     const double G=6.67430e-11;
     sanity_one_pair();
     if (mode=="lj" || mode=="all"){
@@ -137,8 +137,8 @@ int main(int argc,char** argv){
     }
     }
     if (mode=="grav" || mode=="all"){
-        GravFunctorGenerated<ParticleType> gGen(G,true);
-        GravFunctorReference<ParticleType> gRef(G,true);
+        GravFunctorGenerated<ParticleType> gGen(G,false);
+        GravFunctorReference<ParticleType> gRef(G,false);
         bench("GRAV-GEN", gGen);
         bench("GRAV-REF", gRef);
     }

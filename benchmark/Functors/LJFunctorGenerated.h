@@ -18,7 +18,7 @@ public:
     void AoSFunctor(Particle_T& p1, Particle_T& p2) override {
         const auto& r1 = p1.getR();
         const auto& r2 = p2.getR();
-        const double dx = r1[0]-r2[0]; // abs function?
+        const double dx = r1[0]-r2[0];
         const double dy = r1[1]-r2[1];
         const double dz = r1[2]-r2[2];
 
@@ -27,7 +27,7 @@ public:
         const double r = std::sqrt(r2sq);
         //const double mag = lj::computeForce(r, _epsilon, _sigma);
         //const std::array<double,3> F{ -mag*dx, -mag*dy, -mag*dz };  // <-- eksi eklendi
-        const double mag =  - lj::computeForce(r, _epsilon, _sigma);
+        const double mag =  lj::computeForce(r, _epsilon, _sigma);
         const double inv_r = 1.0 / r;
         const std::array<double,3> F{ mag * dx * inv_r,
                               mag * dy * inv_r,
