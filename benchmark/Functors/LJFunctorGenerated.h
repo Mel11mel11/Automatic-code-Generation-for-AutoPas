@@ -29,7 +29,7 @@ public:
               // softening (stability)
         const double r = std::sqrt(r2sq);
         //const double mag = lj::computeForce(r, _epsilon, _sigma);
-        //const std::array<double,3> F{ -mag*dx, -mag*dy, -mag*dz };  // <-- eksi eklendi
+        //const std::array<double,3> F{ -mag*dx, -mag*dy, -mag*dz };  
         const double mag =  lj::computeForce(r, _epsilon, _sigma);
         const double inv_r = 1.0 / r;
         const std::array<double,3> F{ mag * dx * inv_r,
