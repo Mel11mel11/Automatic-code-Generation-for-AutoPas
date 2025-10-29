@@ -123,13 +123,13 @@ int main(int argc,char** argv){
     if (mode=="lj_debug" || mode=="all"){ 
     const double sigma=1.0, epsilon=1.0;
 
-    // n3=true testi
+    // n3=true test
     {
         LJFunctorReference<ParticleType> ref(sigma,epsilon,true);
         LJFunctorGenerated<ParticleType> gen(sigma,epsilon,true);
         //compareFunctorsOnce("[LJ n3=T]", ref, gen);
     }
-    // n3=false testi
+    // n3=false test
     {
         LJFunctorReference<ParticleType> ref(sigma,epsilon,false);
         LJFunctorGenerated<ParticleType> gen(sigma,epsilon,false);
