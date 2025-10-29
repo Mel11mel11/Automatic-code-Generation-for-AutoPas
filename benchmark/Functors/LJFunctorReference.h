@@ -19,7 +19,9 @@ public:
 
         auto dr = p1.getR() - p2.getR();          // vector with 3 dimensions x,y,z
         double dr2 = arrayMath::dot(dr, dr);      // squared distance and now it is scalar
-        if (dr2 < 1e-24) dr2 = 1e-24;             // avoid division by 0 yeah yeah that is a must
+        constexpr double minR2 = 1e-8;     // üstte tanımla istersen
+        if (dr2 < minR2) dr2 = minR2;      // <-- değişken adı: dr2
+           // avoid division by 0 yeah yeah that is a must
 
         double invdr2 = 1.0 / dr2;                  // that is for 1/r^2
         double lj6 = _sigmaSquared * invdr2;       // (sigma^2 / r^2)
