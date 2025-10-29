@@ -25,7 +25,7 @@ public:
 
         const auto& r1 = p1.getR();
         const auto& r2 = p2.getR();
-        auto dr = r2 - r1;                         // displacement vector r⃗12
+        auto dr = r1 - r2;                         // displacement vector r⃗12
         double r2sq = arrayMath::dot(dr, dr);
         if (r2sq < 1e-24) r2sq = 1e-24;            // softening
         const double invr2 = 1.0 / r2sq;

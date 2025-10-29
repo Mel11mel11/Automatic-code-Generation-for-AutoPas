@@ -17,7 +17,7 @@ public:
 
         const auto& ra = p1.getR();
         const auto& rb = p2.getR();
-        auto dr = rb - ra;  // displacement vector
+        auto dr = ra - rb;  // displacement vector
 
         double r2 = arrayMath::dot(dr, dr);
         if (r2 < 1e-24) r2 = 1e-24;  // softening for numerical stability

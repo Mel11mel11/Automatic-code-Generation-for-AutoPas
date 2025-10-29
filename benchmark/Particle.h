@@ -5,6 +5,9 @@
 class Particle {
 public:
     Particle() = default;
+double getFx() const { return _force[0]; }
+double getFy() const { return _force[1]; }
+double getFz() const { return _force[2]; }
 
     // position, velocity, force, id, (opsiyonel) mass
     Particle(std::array<double,3> r,
@@ -18,17 +21,23 @@ public:
     const std::array<double,3>& getF() const { return _force; }
     void setF(std::array<double,3> f) { _force = f; }
 
+    // Particle.h  — addF/subF’yi güvenli, bileşen bileşen yaz
     void addF(std::array<double,3> fAdd) {
-        using namespace arrayMath::literals;
-        _force += fAdd;
-    }
+    _force[0] += fAdd[0];
+    _force[1] += fAdd[1];
+    _force[2] += fAdd[2];
+        }
     void subF(std::array<double,3> fSub) {
-        using namespace arrayMath::literals;
-        _force -= fSub;
+    _force[0] -= fSub[0];
+    _force[1] -= fSub[1];
+    _force[2] -= fSub[2];
     }
+
+
 
     // ---- Position accessors ----
     const std::array<double,3>& getR() const { return _position; }
+
     void setR(std::array<double,3> r) { _position = r; }
 
     // ---- Mass accessors (YENİ) ----

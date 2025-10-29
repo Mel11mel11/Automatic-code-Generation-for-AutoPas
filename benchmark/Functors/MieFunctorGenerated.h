@@ -14,7 +14,7 @@ public:
 
     void AoSFunctor(Particle_T& a, Particle_T& b) override {
         const auto& ra=a.getR(); const auto& rb=b.getR();
-        const double dx=rb[0]-ra[0], dy=rb[1]-ra[1], dz=rb[2]-ra[2];
+        const double dx=ra[0]-rb[0], dy=ra[1]-rb[1], dz=ra[2]-rb[2];
         double r2=dx*dx+dy*dy+dz*dz; if(r2<1e-24) r2=1e-24;
         const double r=std::sqrt(r2), invr=1.0/r;
         const double mag_fast = mie::computeForce(r, _epsilon, _sigma, _n, _m, false);
