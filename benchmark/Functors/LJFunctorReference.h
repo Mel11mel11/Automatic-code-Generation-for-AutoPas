@@ -17,20 +17,21 @@ public:
     void AoSFunctor(Particle_T& p1, Particle_T& p2) override {
         using namespace arrayMath::literals;
 
-        auto dr = p1.getR() - p2.getR();          // displacement vector
-        double dr2 = arrayMath::dot(dr, dr);      // squared distance
-        if (dr2 < 1e-24) dr2 = 1e-24;             // avoid division by 0
+        auto dr = p1.getR() - p2.getR();          // vector with 3 dimensions x,y,z
+        double dr2 = arrayMath::dot(dr, dr);      // squared distance and now it is scalar
+        if (dr2 < 1e-24) dr2 = 1e-24;             // avoid division by 0 yeah yeah that is a must
 
-        double invdr2 = 1.0 / dr2;
-        double lj6 = _sigmaSquared * invdr2;
+        double invdr2 = 1.0 / dr2;                  // that is for 1/r^2
+        double lj6 = _sigmaSquared * invdr2;       // (sigma^2 / r^2)
         lj6 = lj6 * lj6 * lj6;                    // (sigma^6 / r^6)
         double lj12 = lj6 * lj6;                  // (sigma^12 / r^12)
         double lj12m6 = lj12 - lj6;               // (sigma^12 - sigma^6)
+        //std::cout << "lj12m6: " << lj12m6 << std::endl;
         double fac = _epsilon24 * (lj12 + lj12m6) * invdr2; // dV/dr factor
-
-        auto f = dr * fac;                       
-        p1.addF(f);
-        if (_newton3) p2.subF(f);                 
+        auto F = dr * fac;  
+                             
+        p1.addF(F);
+        if (_newton3) p2.subF(F);                 
     }
 
 private:

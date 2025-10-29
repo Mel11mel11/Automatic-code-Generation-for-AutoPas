@@ -8,7 +8,7 @@ V = 4 * epsilon * ((sigma / r)**12 - (sigma / r)**6)
 print("\033[1;36mPotential V(r) = %s\033[0m\n" % V)
 # Step 3- Compute the force 
 F = -sp.diff(V, r)
-F_simplified = sp.simplify(F) # Simplify the expression
+F_simplified = sp.simplify(F)
 print(f"\033[1;94mSimplified Force F(r) = {F_simplified}\033[0m\n")
 # Step 4- Generate C++ code 
 cpp_expr = ccode(F_simplified) # only knows <cmath> so need regulations for  std::pow or smilar etc.
