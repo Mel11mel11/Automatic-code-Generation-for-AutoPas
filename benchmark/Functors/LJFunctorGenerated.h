@@ -27,7 +27,7 @@ public:
         const double r = std::sqrt(r2sq);
         //const double mag = lj::computeForce(r, _epsilon, _sigma);
         //const std::array<double,3> F{ -mag*dx, -mag*dy, -mag*dz };  // <-- eksi eklendi
-        const double mag = lj::computeForce(r, _epsilon, _sigma);
+        const double mag =  - lj::computeForce(r, _epsilon, _sigma);
         const double inv_r = 1.0 / r;
         const std::array<double,3> F{ mag * dx * inv_r,
                               mag * dy * inv_r,
@@ -38,9 +38,6 @@ public:
         p1.addF(F);
         if (_newton3) p2.subF(F);
     }
-    
-bool usesNewton3() const { return _newton3; }
-void setNewton3(bool state) { _newton3 = state; }
 
 private:
     double _sigma, _epsilon;
