@@ -12,22 +12,27 @@ public:
    explicit GravFunctorGenerated(double gravConst, bool newton3=false)
  : _gravConst(gravConst), _newton3(newton3) {}
 
-    void AoSFunctor(Particle_T& a, Particle_T& b) override {
-        
-        const auto& ra=a.getR(); const auto& rb=b.getR();
-        const double dx=ra[0]-rb[0], dy=ra[1]-rb[1], dz=ra[2]-rb[2];
+    void AoSFunctor(Particle_T& p1, Particle_T& p2) override {
+    const auto& r1 = p1.getR();
+    const auto& r2 = p2.getR();
 
-        double r2=dx*dx+dy*dy+dz*dz; if (r2 < 1e-24) r2 = 1e-24;
-        const double r=std::sqrt(r2), invr=1.0/r;
+    const double dx = r1[0] - r2[0];
+    const double dy = r1[1] - r2[1];
+    const double dz = r1[2] - r2[2];
 
-        const double m1 = a.getMass();
-        const double m2 = b.getMass(); // 
-        const double mag = grav::computeForce(r, _gravConst, m1, m2);
-        const std::array<double,3> F{ mag*dx*invr, mag*dy*invr, mag*dz*invr };
+    double r2sq = dx*dx + dy*dy + dz*dz;
+    if (r2sq < 1e-24) r2sq = 1e-24;
+    const double r = std::sqrt(r2sq);
 
-        a.addF(F); 
-        if (_newton3) b.subF(F);
-    }
+    // computeForce = -G*m1*m2 / r^2  → vektöre çevirmek için /r
+    const double coeff = grav::computeForce(r, _gravConst, p1.getMass(), p2.getMass()) / r;
+
+    std::array<double,3> F = { coeff * dx, coeff * dy, coeff * dz };
+
+    p1.addF(F);
+    if (_newton3) p2.subF(F);  // 
+}
+
 bool usesNewton3() const  { return _newton3; }
 
 private:

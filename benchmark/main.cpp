@@ -3,7 +3,6 @@
 #include "ArrayMath.h"
 #include "Timer.h"
 #include <cmath>
-
 // Reference LJ
 #include "Functors/LJFunctorReference.h"
 #include "Functors/LJFunctorGenerated.h"
@@ -11,7 +10,6 @@
 #include "Functors/MieFunctorReference.h"
 #include "Functors/GravFunctorGenerated.h"
 #include "Functors/GravFunctorReference.h"
-
 #include <vector>
 #include <random>
 #include <iostream>
@@ -40,10 +38,6 @@ static std::array<double,3> sumAllTwoWays(const std::vector<Particle>& ps){
         long double a = std::fabsl((long double)fx_arr);
         if (a > maxAbs){ maxAbs = a; maxIdx = i; }
     }
-   // std::cerr << "[DBG] sumFx(arr[0])="<<(double)s_arr
-             // << " sumFx(getFx)="<<(double)s_get
-            //  << " nonFinite="<<nonFinite
-            //  << " max|Fx|="<<(double)maxAbs<<" @idx="<<maxIdx << "\n";
     return { (double)s_arr, (double)s_get, (double)maxAbs };
 }
 
@@ -61,8 +55,7 @@ static std::array<double,3> sumAllTwoWays(const std::vector<Particle>& ps){
 static double checksumFx(const std::vector<ParticleType>& ps){ double s=0; for(auto& p:ps) s+=p.getF()[0]; return s; }
 
 template<class F>
-
-
+ 
 static long runPairs(std::vector<ParticleType>& ps, F& functor){
     Timer t; t.start();
     const size_t N = ps.size();
@@ -80,7 +73,7 @@ int main(int argc,char** argv){
 // create a command line
     const std::string mode = (argc>=2)? argv[1] : "all"; 
 
-    const size_t N = (argc>=3)? static_cast<size_t>(std::stoull(argv[2])) : 100;
+    const size_t N = (argc>=3)? static_cast<size_t>(std::stoull(argv[2])) : 1000;
 
     
     std::vector<ParticleType> ps; ps.reserve(N);
@@ -104,7 +97,7 @@ auto grav_sanity = [](){
 
     auto FA = a.getF(), FB = b.getF();
 
-    // scientific yazdır ki “0.000000” tuzağına düşmeyelim
+
     auto oldf = std::cout.flags(); auto oldp = std::cout.precision();
     std::cout.setf(std::ios::scientific); std::cout.precision(12);
 
@@ -115,7 +108,7 @@ auto grav_sanity = [](){
     std::cout.flags(oldf); std::cout.precision(oldp);
 };
 
-//grav_sanity();  // <-- BUNU EKLE
+grav_sanity();  
 
 
 
@@ -161,17 +154,15 @@ auto grav_sanity = [](){
     const double G=6.67430e-11;
     sanity_one_pair();
     if (mode=="lj" || mode=="all"){
-        LJFunctorReference<ParticleType> ref(sigma,epsilon, false);
-        LJFunctorGenerated<ParticleType> gen(sigma,epsilon,false);
+        LJFunctorReference<ParticleType> ref(sigma,epsilon, true);
+        LJFunctorGenerated<ParticleType> gen(sigma,epsilon,true);
         bench("LJ-REF ", ref);
         bench("LJ-GEN ", gen);
     }
     if (mode == "mie" || mode == "all") {
-        MieFunctorGenerated<ParticleType> mieFast(sigma, epsilon, n, m, false);
         MieFunctorGenerated<ParticleType> mieSafe(sigma, epsilon, n, m, false);
         MieFunctorReference<ParticleType> mieRef(sigma, epsilon, n, m, false);
-    
-        bench("MIE-FAST", mieFast);
+
         bench("MIE-SAFE", mieSafe);
         bench("MIE-REF ", mieRef);
     }
