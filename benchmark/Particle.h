@@ -38,6 +38,8 @@ double getFz() const { return _force[2]; }
 
     void setR(std::array<double,3> r) { _position = r; }
 
+    void setID(size_t id) { _id = id; }
+
     double getMass() const { return _mass; }
 
     void setMass(double m) { _mass = m; }
