@@ -58,8 +58,6 @@ static double checksumFx(const std::vector<Particle>& ps){
     }
     return s;
 }
-
-
 //static double checksumFx(const std::vector<ParticleType>& ps){ double s=0; for(auto& p:ps) s+=p.getF()[0]; return s; }
 
 template<class F>
@@ -81,17 +79,20 @@ int main(int argc,char** argv){
     std::vector<ParticleType> ps; ps.reserve(N);
     std::mt19937_64 rng(44);
     std::uniform_real_distribution<double> U(0.0,1.0);
-    for(size_t i=0;i<N;++i) ps.emplace_back(std::array<double,3>{U(rng),U(rng),U(rng)},
-                                            std::array<double,3>{0,0,0},
-                                            std::array<double,3>{0,0,0},
-                                            static_cast<int>(i));
+    for(size_t i=0;i<N;++i) ps.emplace_back(
+        std::array<double,3>{U(rng),U(rng),U(rng)},
+        std::array<double,3>{0,0,0},
+        std::array<double,3>{0,0,0},
+    static_cast<int>(i),
+    1.0   // mass
+);
 
-    std::cout<<std::fixed<<std::setprecision(6);
+
+    //std::cout<<std::fixed<<std::setprecision(6);
 
     auto bench = [&](const std::string& name, auto& functor){
     zero_all(ps); // make zero all particles
         zero_all(ps);
-     std::cout << "[DBG] after zero_all sumFx=" << checksumFx(ps) << "\n";
 
     long t_ns = runPairs(ps, functor);
     auto sums = sumAllTwoWays(ps);  // iki farklı toplam + max|Fx|
@@ -106,11 +107,6 @@ int main(int argc,char** argv){
 
     LJFunctorReference<ParticleType> ref(1.0, 1.0, /*newton3*/ true);
     LJFunctorGenerated<ParticleType> gen(1.0, 1.0, /*newton3*/ true);
-
-    // (opsiyonel) bu fonksiyonlar varsa bayrağı göster:
-    // std::cerr << std::boolalpha
-    //           << "[DBG] ref.usesNewton3=" << ref.usesNewton3()
-    //           << " gen.usesNewton3=" << gen.usesNewton3() << "\n";
 
     a.setF(std::array<double,3>{0,0,0});
     b.setF(std::array<double,3>{0,0,0});
@@ -131,8 +127,8 @@ int main(int argc,char** argv){
     const double G=6.67430e-11;
     sanity_one_pair();
     if (mode=="lj" || mode=="all"){
-        LJFunctorReference<ParticleType> ref(sigma,epsilon, false);
-        LJFunctorGenerated<ParticleType> gen(sigma,epsilon,false);
+        LJFunctorReference<ParticleType> ref(sigma,epsilon, true);
+        LJFunctorGenerated<ParticleType> gen(sigma,epsilon,true);
         bench("LJ-REF ", ref);
         bench("LJ-GEN ", gen);
     }
@@ -162,12 +158,13 @@ int main(int argc,char** argv){
     }
     }
     if (mode=="grav" || mode=="all"){
-        GravFunctorGenerated<ParticleType> gGen(G,false);
-        GravFunctorReference<ParticleType> gRef(G,false);
+        GravFunctorGenerated<ParticleType> gGen(G,true);
+        GravFunctorReference<ParticleType> gRef(G,true);
         bench("GRAV-GEN", gGen);
         bench("GRAV-REF", gRef);
     }
     return 0;
 }
+// TODO: newton3 does not work well
 
 //TODO: arguments n and m  for command line

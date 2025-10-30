@@ -34,16 +34,13 @@ double getFz() const { return _force[2]; }
     }
 
 
-
-    // ---- Position accessors ----
     const std::array<double,3>& getR() const { return _position; }
 
     void setR(std::array<double,3> r) { _position = r; }
 
-    // ---- Mass accessors (YENİ) ----
     double getMass() const { return _mass; }
 
-    void   setMass(double m) { _mass = m; }
+    void setMass(double m) { _mass = m; }
 
 private:
     std::array<double,3> _position{};
