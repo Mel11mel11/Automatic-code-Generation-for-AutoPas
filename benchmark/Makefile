@@ -1,4 +1,4 @@
-CXX := g++
+CXX := g++ -std=c++17
 CXXFLAGS := -std=c++17 -O3 -Wall -Wextra -march=native \
             -I. -IFunctors -Igenerated_files \
             -DMIE_SAFE            # ← 

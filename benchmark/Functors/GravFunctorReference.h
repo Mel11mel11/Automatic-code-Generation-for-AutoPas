@@ -9,8 +9,8 @@
 template <typename Particle_T>
 class GravFunctorReference : public Functor<Particle_T> {
 public:
-    explicit GravFunctorReference(double G, bool newton3 = false)
-        : _G(G), _newton3(newton3) {}
+explicit GravFunctorReference(double gravConst, bool newton3 = false)
+    : _gravConst(gravConst), _newton3(newton3) {}
 
     void AoSFunctor(Particle_T& p1, Particle_T& p2) override {
         using namespace arrayMath::literals;  // enables array math ops (+, -, *)
@@ -26,16 +26,13 @@ public:
 
         double m1 = p1.getMass();
         double m2 = p2.getMass();
-
-        // Newton gravitational law (always attractive)
-        double mag = -_G * m1 * m2 * invr3;
-
+        double mag =- _gravConst * m1 * m2 * invr3;
         auto F = dr * mag;  // scale vector
         p1.addF(F);
         if (_newton3) p2.subF(F);
     }
 
 private:
-    double _G;
+    double  _gravConst;
     bool _newton3;
 };
