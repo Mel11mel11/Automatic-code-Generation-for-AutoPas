@@ -40,14 +40,14 @@ static std::array<double,3> sumAllTwoWays(const std::vector<Particle>& ps){
         long double a = std::fabsl((long double)fx_arr);
         if (a > maxAbs){ maxAbs = a; maxIdx = i; }
     }
-    std::cerr << "[DBG] sumFx(arr[0])="<<(double)s_arr
-              << " sumFx(getFx)="<<(double)s_get
-              << " nonFinite="<<nonFinite
-              << " max|Fx|="<<(double)maxAbs<<" @idx="<<maxIdx << "\n";
+   // std::cerr << "[DBG] sumFx(arr[0])="<<(double)s_arr
+             // << " sumFx(getFx)="<<(double)s_get
+            //  << " nonFinite="<<nonFinite
+            //  << " max|Fx|="<<(double)maxAbs<<" @idx="<<maxIdx << "\n";
     return { (double)s_arr, (double)s_get, (double)maxAbs };
 }
 
-static double checksumFx(const std::vector<Particle>& ps){
+/*static double checksumFx(const std::vector<Particle>& ps){
     double s = 0.0;
     for (const auto& p : ps) {
         const double fx = p.getFx();  //
@@ -57,16 +57,23 @@ static double checksumFx(const std::vector<Particle>& ps){
         s += fx;
     }
     return s;
-}
-//static double checksumFx(const std::vector<ParticleType>& ps){ double s=0; for(auto& p:ps) s+=p.getF()[0]; return s; }
+}*/
+static double checksumFx(const std::vector<ParticleType>& ps){ double s=0; for(auto& p:ps) s+=p.getF()[0]; return s; }
 
 template<class F>
+
+
 static long runPairs(std::vector<ParticleType>& ps, F& functor){
     Timer t; t.start();
-    const size_t N=ps.size();
-    for(size_t i=0;i<N;++i) for(size_t j=i+1;j<N;++j) functor.AoSFunctor(ps[i], ps[j]);
-    t.stop(); return t.getTotalTime(); // ns
+    const size_t N = ps.size();
+    for (size_t i = 0; i < N; ++i)
+        for (size_t j = i + 1; j < N; ++j)
+            functor.AoSFunctor(ps[i], ps[j]);
+    t.stop();
+    return t.getTotalTime();
 }
+
+
 
 
 int main(int argc,char** argv){
@@ -86,7 +93,34 @@ int main(int argc,char** argv){
     static_cast<int>(i),
     1.0   // mass
 );
+//
+auto grav_sanity = [](){
+    Particle a({0.0,0.0,0.0},{0,0,0},{0,0,0}, 0, 1.0);
+    Particle b({1.0,0.0,0.0},{0,0,0},{0,0,0}, 1, 1.0);
 
+    GravFunctorGenerated<Particle> ggen(6.67430e-11, true);  // N3 = true
+    a.setF({0,0,0}); b.setF({0,0,0});
+    ggen.AoSFunctor(a,b);
+
+    auto FA = a.getF(), FB = b.getF();
+
+    // scientific yazdır ki “0.000000” tuzağına düşmeyelim
+    auto oldf = std::cout.flags(); auto oldp = std::cout.precision();
+    std::cout.setf(std::ios::scientific); std::cout.precision(12);
+
+    std::cout << "[SANITY] N3=true  FA=("<<FA[0]<<","<<FA[1]<<","<<FA[2]<<")  "
+              << "FB=("<<FB[0]<<","<<FB[1]<<","<<FB[2]<<")  "
+              << "FA+FB=("<<(FA[0]+FB[0])<<","<<(FA[1]+FB[1])<<","<<(FA[2]+FB[2])<<")\n";
+
+    std::cout.flags(oldf); std::cout.precision(oldp);
+};
+
+//grav_sanity();  // <-- BUNU EKLE
+
+
+
+
+//
 
     //std::cout<<std::fixed<<std::setprecision(6);
 
@@ -127,36 +161,21 @@ int main(int argc,char** argv){
     const double G=6.67430e-11;
     sanity_one_pair();
     if (mode=="lj" || mode=="all"){
-        LJFunctorReference<ParticleType> ref(sigma,epsilon, true);
-        LJFunctorGenerated<ParticleType> gen(sigma,epsilon,true);
+        LJFunctorReference<ParticleType> ref(sigma,epsilon, false);
+        LJFunctorGenerated<ParticleType> gen(sigma,epsilon,false);
         bench("LJ-REF ", ref);
         bench("LJ-GEN ", gen);
     }
     if (mode == "mie" || mode == "all") {
-        MieFunctorGenerated<ParticleType> mieFast(sigma, epsilon, n, m, true);
-        MieFunctorGenerated<ParticleType> mieSafe(sigma, epsilon, n, m, true);
-        MieFunctorReference<ParticleType> mieRef(sigma, epsilon, n, m, true);
+        MieFunctorGenerated<ParticleType> mieFast(sigma, epsilon, n, m, false);
+        MieFunctorGenerated<ParticleType> mieSafe(sigma, epsilon, n, m, false);
+        MieFunctorReference<ParticleType> mieRef(sigma, epsilon, n, m, false);
     
         bench("MIE-FAST", mieFast);
         bench("MIE-SAFE", mieSafe);
         bench("MIE-REF ", mieRef);
     }
-    if (mode=="lj_debug" || mode=="all"){ 
-    const double sigma=1.0, epsilon=1.0;
 
-    // n3=true test
-    {
-        LJFunctorReference<ParticleType> ref(sigma,epsilon,true);
-        LJFunctorGenerated<ParticleType> gen(sigma,epsilon,true);
-        //compareFunctorsOnce("[LJ n3=T]", ref, gen);
-    }
-    // n3=false test
-    {
-        LJFunctorReference<ParticleType> ref(sigma,epsilon,false);
-        LJFunctorGenerated<ParticleType> gen(sigma,epsilon,false);
-        //compareFunctorsOnce("[LJ n3=F]", ref, gen);
-    }
-    }
     if (mode=="grav" || mode=="all"){
         GravFunctorGenerated<ParticleType> gGen(G,true);
         GravFunctorReference<ParticleType> gRef(G,true);

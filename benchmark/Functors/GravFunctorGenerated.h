@@ -23,30 +23,12 @@ public:
         const double m1 = a.getMass();
         const double m2 = b.getMass(); // 
         const double mag = grav::computeForce(r, _gravConst, m1, m2);
-        // ---- DEBUG print (scientific) ----
-{
-    //auto oldflags = std::cout.flags();
-  //  auto oldprec  = std::cout.precision();
-
-  /*  std::cout.setf(std::ios::scientific);
-    std::cout.precision(12);
-    std::cout << "[TEST] r=" << r
-              << "  G="   << _gravConst
-              << "  m1="  << m1
-              << "  m2="  << m2
-              << "  mag=" << mag
-              << std::endl;
-
-    std::cout.flags(oldflags);
-    std::cout.precision(oldprec);*/
-}
-// ---- end DEBUG ----
- // |F|
         const std::array<double,3> F{ mag*dx*invr, mag*dy*invr, mag*dz*invr };
 
         a.addF(F); 
         if (_newton3) b.subF(F);
     }
+bool usesNewton3() const  { return _newton3; }
 
 private:
     double _gravConst ; bool _newton3;

@@ -28,5 +28,7 @@ public:
         a.addF(F_safe);
         if (_newton3) b.subF(F_safe);
     }
+    bool usesNewton3() const  { return _newton3; }
+
 private: double _sigma,_epsilon; int _n,_m; bool _newton3;
 };

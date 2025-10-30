@@ -34,6 +34,7 @@ public:
         p1.addF(F);
         if (_newton3) p2.subF(F);                 
     }
+bool usesNewton3() const  { return _newton3; }
 
 private:
     double _sigmaSquared{};
