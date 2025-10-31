@@ -175,6 +175,5 @@ grav_sanity();
     }
     return 0;
 }
-// TODO: newton3 does not work well
 
 //TODO: arguments n and m  for command line
