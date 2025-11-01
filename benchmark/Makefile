@@ -31,7 +31,7 @@ testcheck: $(TEST_TARGET)
 		( echo "Tests failed! benchmark build aborted."; exit 1 )
 
 
-
+DELTA := $(shell ./testing | awk '/^\[MAXDELTA\]/{print $$2}')
 # --- main target ---
 $(TARGET): $(OBJS)
 	$(CXX) $(CXXFLAGS) $(OBJS) -o $@
