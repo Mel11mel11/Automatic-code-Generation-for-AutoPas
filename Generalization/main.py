@@ -4,89 +4,86 @@ import sys
 import yaml
 import sympy as sp
 import textwrap
-from datetime import datetime
-from replace import fix_exp  # fix_exp(expr: str) -> str  (e.g., pow -> std::pow)
+from replace import fix_exp  # pow -> std::pow, etc.
 
-# -----------------------------
-# YAML → configuration
-# -----------------------------
-def load_yaml(path: str) -> dict:
-    """Load and validate a flat YAML spec (no 'potential' root)."""
-    if not os.path.isfile(path):
-        raise FileNotFoundError(f"YAML not found: {path}")
 
-    try:
-        with open(path, "r", encoding="utf-8") as f:
-            data = yaml.safe_load(f)
-    except Exception as e:
-        raise ValueError(f"YAML parse error ({path}): {e}") from e
-
+def _validate_one(data: dict) -> dict:
+    if not isinstance(data, dict):
+        raise ValueError("YAML item must be a mapping (dict).")
     name = data.get("name")
-    expression = data.get("expression")
-    out = data.get("output", {})
+    expr = data.get("expression")
+    out = data.get("output", {}) or {}
     classname = out.get("classname")
     filename = out.get("filename")
-    options = data.get("options", {})
-    # parameters: arbitrary names → defaults (numbers/strings)
-    parameters = data.get("parameters", {}) or {}
+    options = data.get("options", {}) or {}
+    params = data.get("parameters", {}) or {}
 
-    # Required fields
-    if not all([name, expression, classname, filename]):
+    if not all([name, expr, classname, filename]):
         raise ValueError(
-            "YAML validation error: 'name', 'expression', 'output.classname', and 'output.filename' are required."
+            "YAML item validation error: 'name', 'expression', 'output.classname', and 'output.filename' are required."
         )
 
-    # Validate parameters types (allow number or string expr)
-    for k, v in parameters.items():
+    for k, v in params.items():
         if not isinstance(k, str):
-            raise ValueError(f"Parameter name must be a string, got: {k!r}")
+            raise ValueError(f"Parameter name must be string, got: {k!r}")
         if not isinstance(v, (int, float, str, type(None))):
-            raise ValueError(f"Parameter '{k}' must be a number or string (expr), got: {type(v)}")
+            raise ValueError(f"Parameter '{k}' must be number or string, got: {type(v)}")
 
     newton3_default = bool(options.get("newton3", True))
     eps_guard = float(options.get("avoid_r2_zero", 1e-24))
 
     return {
         "name": name,
-        "expr_str": expression,
+        "expr_str": expr,
         "classname": classname,
         "filename": filename,
         "newton3_default": newton3_default,
         "eps_guard": eps_guard,
-        "parameters": parameters,          # dict[str, number|str]
+        "parameters": params,
     }
 
-# -----------------------------
-# SymPy → force & C++ expression
-# -----------------------------
+
+def load_yaml_many(path: str) -> list[dict]:
+    if not os.path.isfile(path):
+        raise FileNotFoundError(f"YAML not found: {path}")
+
+    with open(path, "r", encoding="utf-8") as f:
+        docs = list(yaml.safe_load_all(f))
+
+    items: list[dict] = []
+    for doc in docs:
+        if doc is None:
+            continue
+        # case A: potentials: [ {...}, {...} ]
+        if isinstance(doc, dict) and "potentials" in doc and isinstance(doc["potentials"], list):
+            for it in doc["potentials"]:
+                items.append(_validate_one(it))
+        # case B: single flat item
+        elif isinstance(doc, dict):
+            items.append(_validate_one(doc))
+        # other types are ignored
+
+    if not items:
+        raise ValueError("No valid potentials found. Use '---' multi-doc or 'potentials: [ ... ]' list.")
+    return items
+
+
 def calculate_force(expr_str: str, param_names: list[str]):
-    """
-    Compute F(r) = -dU/dr from U(r), binding arbitrary parameter symbols.
-    Returns: (sympy_expr, c_code_raw, c_code_std)
-    """
-    try:
-        # Allowed variable and parameter symbols
-        r = sp.Symbol("r", positive=True)
-        sym_locals = {"r": r}
-        for pname in param_names:
-            # Make each parameter a real SymPy symbol
-            sym_locals[pname] = sp.Symbol(pname, real=True)
+    r = sp.Symbol("r", positive=True)
+    sym_locals = {"r": r}
+    for pname in param_names:
+        sym_locals[pname] = sp.Symbol(pname, real=True)
 
-        # Safe-ish sympify: only allow our whitelist of names
-        U = sp.sympify(expr_str, locals=sym_locals)
-        F = -sp.diff(U, r)
-        F = sp.nsimplify(F)
-        F = sp.N(F)
+    U = sp.sympify(expr_str, locals=sym_locals)
+    F = -sp.diff(U, r)
+    F = sp.nsimplify(F)
+    F = sp.N(F)
 
-        F_c = sp.ccode(F)    # raw C-like expression (may use pow, sqrt, ...)
-        F_std = fix_exp(F_c) # ensure std::pow, std::sqrt, ...
-        return F, F_c, F_std
-    except Exception as e:
-        raise ValueError(f"SymPy error (expression='{expr_str}'): {e}") from e
+    F_c = sp.ccode(F)
+    F_std = fix_exp(F_c)
+    return F, F_c, F_std
 
-# -----------------------------
-# C++ header emission
-# -----------------------------
+
 def emit_header(
     classname: str,
     F_code: str,
@@ -94,38 +91,14 @@ def emit_header(
     eps_guard: float,
     src_yaml: str,
     param_names: list[str],
-    param_defaults: dict[str, object],
 ) -> str:
-    """
-    Emit a readable C++ Functor header:
-      - Constructor takes all parameters as double
-      - Members stored as `_param`
-      - Local const aliases (e.g., `const double k = _k;`) used in math
-    """
-    date = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    banner = f"""// ============================================================================
-//  Auto-generated by Minimal Potential Codegen (parameters-enabled)
-//  Source: {os.path.basename(src_yaml)}    Date: {date}
-//  Notes: Pairwise isotropic potential; F projected along the displacement.
-// ============================================================================
-"""
+   
 
-    # Constructor signature for parameters
-    # All as double, no C++ default args (to avoid mixing string/expr); keep it simple and explicit.
-    ctor_params = ", ".join([f"double {p}" for p in param_names])
-    if ctor_params:
-        ctor_params = ", " + ctor_params  # after newton3
-
-    # Member initializers
     member_inits = ", ".join([f"_{p}({p})" for p in param_names])
-    if member_inits:
-        member_inits = f", {member_inits}"
-
-    # Local aliases (human-readable math)
-    local_aliases = "\n        ".join([f"const double {p} = _{p};" for p in param_names])
-
-    # Member declarations
+    member_inits = (", " + member_inits) if member_inits else ""
+    local_aliases = "\n        ".join([f"const double {p} = _{p};" for p in param_names]) if param_names else "// (no parameters)"
     member_decls = "\n    ".join([f"double _{p};" for p in param_names]) if param_names else ""
+    ctor_param_sig = (", " + ", ".join([f"double {p}" for p in param_names])) if param_names else ""
 
     body = f"""
 #pragma once
@@ -136,7 +109,7 @@ def emit_header(
 template <class Particle_T>
 class {classname} : public Functor<Particle_T> {{
 public:
-    explicit {classname}(bool newton3 = {"true" if newton3_default else "false"}{(", " + ", ".join([f"double {p}" for p in param_names])) if param_names else ""})
+    explicit {classname}(bool newton3 = {"true" if newton3_default else "false"}{ctor_param_sig})
         : _newton3(newton3){member_inits} {{}}
 
     bool allowsNewton3() const override {{ return true; }}
@@ -157,8 +130,8 @@ public:
         const double r = std::sqrt(r2);
         const double inv_r = 1.0 / r;
 
-        // Parameter aliases (bound from constructor)
-        {(local_aliases if param_names else "// (no parameters)")}
+        // Parameter aliases
+        {local_aliases}
 
         // --- codegen: force magnitude F(r, params) ---
         // Fmag = {F_code}
@@ -177,14 +150,12 @@ public:
 
 private:
     bool _newton3;
-    {member_decls if member_decls else "" }
+    {member_decls}
 }};
 """
-    return banner + textwrap.dedent(body)
+    return textwrap.dedent(body)
 
-# -----------------------------
-# CLI
-# -----------------------------
+
 def main():
     # Usage: python3 script.py <spec.yaml> <out_dir>
     if len(sys.argv) < 3:
@@ -196,29 +167,37 @@ def main():
 
     try:
         os.makedirs(out_dir, exist_ok=True)
-        cfg = load_yaml(yaml_path)
+        cfg_list = load_yaml_many(yaml_path)
 
-        # Parameter names in stable order (YAML preserves insertion order in Py3.7+)
-        param_names = list(cfg["parameters"].keys())
+        # Optional: deduplicate filenames/classnames early
+        seen_files, seen_classes = set(), set()
+        for cfg in cfg_list:
+            if cfg["filename"] in seen_files:
+                raise ValueError(f"Duplicate output filename: {cfg['filename']}")
+            if cfg["classname"] in seen_classes:
+                raise ValueError(f"Duplicate classname: {cfg['classname']}")
+            seen_files.add(cfg["filename"])
+            seen_classes.add(cfg["classname"])
 
-        # Build SymPy using arbitrary params
-        _, _, F_std = calculate_force(cfg["expr_str"], param_names)
+        for cfg in cfg_list:
+            param_names = list(cfg["parameters"].keys())
+            _, _, F_std = calculate_force(cfg["expr_str"], param_names)
 
-        header_str = emit_header(
-            classname=cfg["classname"],
-            F_code=F_std,
-            newton3_default=cfg["newton3_default"],
-            eps_guard=cfg["eps_guard"],
-            src_yaml=yaml_path,
-            param_names=param_names,
-            param_defaults=cfg["parameters"],  # reserved if you later want C++ defaults
-        )
+            header_str = emit_header(
+                classname=cfg["classname"],
+                F_code=F_std,
+                newton3_default=cfg["newton3_default"],
+                eps_guard=cfg["eps_guard"],
+                src_yaml=yaml_path,
+                param_names=param_names,
+            )
 
-        out_path = os.path.join(out_dir, cfg["filename"])
-        with open(out_path, "w", encoding="utf-8") as f:
-            f.write(header_str)
+            out_path = os.path.join(out_dir, cfg["filename"])
+            with open(out_path, "w", encoding="utf-8") as f:
+                f.write(header_str)
 
-        print(f"Functor created: {out_path}")
+            print(f"[ok] Functor created: {out_path}")
+
     except Exception as e:
         print(f"[ERROR] {e}")
         sys.exit(2)

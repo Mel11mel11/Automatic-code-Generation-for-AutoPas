@@ -1,23 +1,20 @@
 #This data file is used to test the generalization capabilities of a model across different scenarios.
 
-  name: Test
-  expression: "r**2"
-  parameters: {}
-  output:
-    classname: TestFunctor_Gen
-    filename: generated_Test_Functor.hpp
-  options:
-    newton3: true
-
-
-  name: Harmonic
-  expression: "0.5*k*r**2 + c"
-  parameters:
-    k: 2.0      # any number of params, names arbitrary
-    c: 0.1
-  output:
-    classname: HarmonicFunctor_Gen
-    filename: generated_Harmonic.hpp
-  options:
-    newton3: true
-  avoid_r2_zero: 1e-24
+---
+name: Test
+expression: "r**2"
+parameters: {}
+output: {classname: TestFunctor_Gen, filename: generated_Test.hpp}
+options: {newton3: true}
+---
+name: LennardJones
+expression: "4*epsilon*((sigma/r)**12 - (sigma/r)**6)"
+parameters: {sigma: 1.0, epsilon: 1.0}
+output: {classname: LJFunctor_Gen, filename: generated_LJ.hpp}
+options: {newton3: true}
+---
+name: Krypton_LJ
+expression: "4*epsilon*((sigma/r)**12 - (sigma/r)**6)"
+parameters: {sigma: 3.624, epsilon: 171.0}
+output: {classname: KryptonLJFunctor_Gen, filename: generated_Kr_LJ.hpp}
+options: {newton3: true}

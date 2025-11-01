@@ -5,10 +5,10 @@
 #include <cmath>
 
 template <class Particle_T>
-class HarmonicFunctor_Gen : public Functor<Particle_T> {
+class LJFunctor_Gen : public Functor<Particle_T> {
 public:
-    explicit HarmonicFunctor_Gen(bool newton3 = true, double k, double c)
-        : _newton3(newton3), _k(k), _c(c) {}
+    explicit LJFunctor_Gen(bool newton3 = true, double sigma, double epsilon)
+        : _newton3(newton3), _sigma(sigma), _epsilon(epsilon) {}
 
     bool allowsNewton3() const override { return true; }
     bool usesNewton3()   const override { return _newton3; }
@@ -28,13 +28,13 @@ public:
         const double r = std::sqrt(r2);
         const double inv_r = 1.0 / r;
 
-        // Parameter aliases (bound from constructor)
-        const double k = _k;
-        const double c = _c;
+        // Parameter aliases
+        const double sigma = _sigma;
+        const double epsilon = _epsilon;
 
         // --- codegen: force magnitude F(r, params) ---
-        // Fmag = -k*r
-        const double Fmag = -k*r;
+        // Fmag = -4.0*epsilon*(6.0*std::pow(sigma, 6)/std::pow(r, 7) - 12.0*std::pow(sigma, 12)/std::pow(r, 13))
+        const double Fmag = -4.0*epsilon*(6.0*std::pow(sigma, 6)/std::pow(r, 7) - 12.0*std::pow(sigma, 12)/std::pow(r, 13));
 
         // Vector force: F = Fmag * r̂
         const double fx = Fmag * dx * inv_r;
@@ -49,6 +49,6 @@ public:
 
 private:
     bool _newton3;
-    double _k;
-    double _c;
+    double _sigma;
+    double _epsilon;
 };
