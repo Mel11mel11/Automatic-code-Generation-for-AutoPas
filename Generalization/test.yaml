@@ -1,4 +1,4 @@
-#This data file is used to test the generalization capabilities of a model across different scenarios.
+#This data is used to test the generalization capabilities of a model across different scenarios.
 
 ---
 name: Test
@@ -12,9 +12,33 @@ expression: "4*epsilon*((sigma/r)**12 - (sigma/r)**6)"
 parameters: {sigma: 1.0, epsilon: 1.0}
 output: {classname: LJFunctor_Gen, filename: generated_LJ.hpp}
 options: {newton3: true}
+
 ---
-name: Krypton_LJ
-expression: "4*epsilon*((sigma/r)**12 - (sigma/r)**6)"
-parameters: {sigma: 3.624, epsilon: 171.0}
-output: {classname: KryptonLJFunctor_Gen, filename: generated_Kr_LJ.hpp}
-options: {newton3: true}
+name: Gravity_Newton
+expression: "-G*m1*m2 / r"
+parameters:
+  G: 6.67430e-11   # 
+  m1: 1.0          # kg 
+  m2: 1.0          # kg 
+output:
+  classname: GravityFunctor_Gen
+  filename: generated_Gravity.hpp
+options:
+  newton3: true
+---
+name: Mie_Potential
+expression: "C*epsilon*((sigma/r)**n - (sigma/r)**m)"
+parameters:
+  sigma: 3.4        # (Angström) example
+  epsilon: 120.0    # kelvin?
+  n: 12
+  m: 6
+  C: "(n/(n-m))*((n/m)**(m/(n-m)))"
+output:
+  classname: MieFunctor_Gen
+  filename: generated_Mie.hpp
+options:
+  newton3: true
+
+
+

@@ -159,7 +159,7 @@ private:
 def main():
     # Usage: python3 script.py <spec.yaml> <out_dir>
     if len(sys.argv) < 3:
-        print("Usage: python3 <script.py> <spec.yaml> <out_dir>")
+        print("Usage: python3 <script.py> <spec.yaml> <out_dir/>")
         sys.exit(1)
 
     yaml_path = sys.argv[1]
