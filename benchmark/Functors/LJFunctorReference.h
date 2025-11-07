@@ -12,7 +12,7 @@ public:
         : Functor<Particle_T>(),
           _sigmaSquared(sigma * sigma),
           _epsilon24(epsilon * 24.0),
-          _newton3(newton3) {}  // ✅ burayı ekledik
+          _newton3(newton3) {}  // 
 
     void AoSFunctor(Particle_T& p1, Particle_T& p2) override {
         using namespace arrayMath::literals;
