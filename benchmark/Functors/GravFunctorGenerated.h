@@ -24,7 +24,7 @@ public:
     if (r2sq < 1e-24) r2sq = 1e-24;
     const double r = std::sqrt(r2sq);
 
-    // computeForce = -G*m1*m2 / r^2  → vektöre çevirmek için /r
+    // computeForce = -G*m1*m2 / r^2 
     const double coeff = grav::computeForce(r, _gravConst, p1.getMass(), p2.getMass()) / r;
 
     std::array<double,3> F = { coeff * dx, coeff * dy, coeff * dz };
