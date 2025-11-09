@@ -10,6 +10,7 @@
 #include "Functors/MieFunctorReference.h"
 #include "Functors/GravFunctorGenerated.h"
 #include "Functors/GravFunctorReference.h"
+#include  "Functors/Automated_LJ.h"
 #include <vector>
 #include <random>
 #include <iostream>
@@ -156,8 +157,10 @@ grav_sanity();
     if (mode=="lj" || mode=="all"){
         LJFunctorReference<ParticleType> ref(sigma,epsilon, true);
         LJFunctorGenerated<ParticleType> gen(sigma,epsilon,true);
+        Automated_LJ<ParticleType> auto_lj(true, sigma, epsilon);
         bench("LJ-REF ", ref);
         bench("LJ-GEN ", gen);
+        bench("LJ-AUTO", auto_lj);
     }
     if (mode == "mie" || mode == "all") {
         MieFunctorGenerated<ParticleType> mieSafe(sigma, epsilon, n, m, false);
