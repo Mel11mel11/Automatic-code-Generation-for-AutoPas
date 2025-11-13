@@ -39,6 +39,36 @@ output:
   filename: generated_Mie.hpp
 options:
   newton3: true
+---
+name: Krypton_TangToennies
+expression: |
+  A*exp(a1*r + a2*r**2 + a_m1/r)
+  - (
+      C6/r**6  * (1 - exp(-b*r) * Sum((b*r)**k/factorial(k), (k, 0, 6)))
+    + C8/r**8  * (1 - exp(-b*r) * Sum((b*r)**k/factorial(k), (k, 0, 8)))
+    + C10/r**10 * (1 - exp(-b*r) * Sum((b*r)**k/factorial(k), (k, 0, 10)))
+    + (C6*(C10/C8)**3)/r**12
+        * (1 - exp(-b*r) * Sum((b*r)**k/factorial(k), (k, 0, 12)))
+    + (C8*((C6*(C10/C8)**3)/C10)**3)/r**14
+        * (1 - exp(-b*r) * Sum((b*r)**k/factorial(k), (k, 0, 14)))
+    + (C10*((C8*((C6*(C10/C8)**3)/C10)**3)/(C6*(C10/C8)**3))**3)/r**16
+        * (1 - exp(-b*r) * Sum((b*r)**k/factorial(k), (k, 0, 16)))
+    )
+parameters:
+  A:   0.3200171798e8
+  a1: -0.243056554e1
+  a2: -0.1435536209
+  a_m1: -0.432327386
+  b:   0.2786344368e1
+  C6:  0.899220925e6
+  C8:  0.7316713603e7
+  C10: 0.7835488511e8
 
+output:
+  classname: KryptonFunctorGenerated_Gen
+  filename: generated_Krypton.hpp
+
+options:
+  newton3: true
 
 
