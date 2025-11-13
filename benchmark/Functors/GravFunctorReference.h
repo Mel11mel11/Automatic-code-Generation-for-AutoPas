@@ -9,7 +9,7 @@
 template <typename Particle_T>
 class GravFunctorReference : public Functor<Particle_T> {
 public:
-explicit GravFunctorReference(double gravConst, bool newton3 = false)
+explicit GravFunctorReference(double gravConst, bool newton3)
     : _gravConst(gravConst), _newton3(newton3) {}
 
     void AoSFunctor(Particle_T& p1, Particle_T& p2) override {
@@ -32,6 +32,7 @@ explicit GravFunctorReference(double gravConst, bool newton3 = false)
         if (_newton3) p2.subF(F);
     }
     bool usesNewton3() const { return _newton3; }
+    bool allowsNewton3() const { return true; }
 
 private:
     double  _gravConst;

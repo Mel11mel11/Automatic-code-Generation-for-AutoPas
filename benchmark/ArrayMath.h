@@ -665,4 +665,4 @@ double boxDistanceSquared(const std::array<T, SIZE> &aMin, const std::array<T, S
 
   return dot(aToB, aToB) + dot(bToA, bToA);
 }
-}  // namespace arrayMath
+} 

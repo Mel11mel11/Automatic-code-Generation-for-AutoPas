@@ -1,14 +1,10 @@
-// MieFunctorReference.h
+
 #pragma once
 #include "../ArrayMath.h"
 #include "../ArrayUtils.h"
 #include "Functor.h"
 #include <cmath>
 
-// Reference (hand-written) Mie force functor.
-// V(r) = C * eps * [ (sigma/r)^n - (sigma/r)^m ]
-// C = n/(n-m) * (n/m)^(m/(n-m))
-// F_vec = C*eps * [ n*(sigma/r)^n - m*(sigma/r)^m ] * (dr / r^2)
 template <typename Particle_T>
 class MieFunctorReference : public Functor<Particle_T> {
 public:
@@ -25,13 +21,13 @@ public:
 
         const auto& r1 = p1.getR();
         const auto& r2 = p2.getR();
-        auto dr = r1 - r2;                         // displacement vector r⃗12
+        auto dr = r1 - r2;                         
         double r2sq = arrayMath::dot(dr, dr);
-        if (r2sq < 1e-24) r2sq = 1e-24;            // softening
+        if (r2sq < 1e-24) r2sq = 1e-24;            
         const double invr2 = 1.0 / r2sq;
-        const double invr  = std::sqrt(invr2);     // = 1/r
+        const double invr  = std::sqrt(invr2);     
 
-        const double sr   = _sigma * invr;         // (σ/r)
+        const double sr   = _sigma * invr;        
         const double sr_n = std::pow(sr, _n);
         const double sr_m = std::pow(sr, _m);
 
@@ -42,7 +38,8 @@ public:
         p1.addF(F);
         if (_newton3) p2.subF(F);
     }
-bool usesNewton3() const  { return _newton3; }
+    bool usesNewton3() const  { return _newton3; }
+    bool allowsNewton3() const { return true; }
 
 private:
     double _sigma, _epsilon, _C{};

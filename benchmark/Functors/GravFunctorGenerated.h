@@ -9,7 +9,7 @@
 template <typename Particle_T>
 class GravFunctorGenerated : public Functor<Particle_T> {
 public:
-   explicit GravFunctorGenerated(double gravConst, bool newton3=false)
+   explicit GravFunctorGenerated(double gravConst, bool newton3)
  : _gravConst(gravConst), _newton3(newton3) {}
 
     void AoSFunctor(Particle_T& p1, Particle_T& p2) override {
@@ -25,16 +25,20 @@ public:
     const double r = std::sqrt(r2sq);
 
     // computeForce = -G*m1*m2 / r^2 
-    const double coeff = grav::computeForce(r, _gravConst, p1.getMass(), p2.getMass()) / r;
+    double mass_uno = p1.getMass();
+    double mass_due = p2.getMass();
+    const double coeff = grav::computeForce(r, _gravConst, mass_uno, mass_due) / r;
 
     std::array<double,3> F = { coeff * dx, coeff * dy, coeff * dz };
 
     p1.addF(F);
-    if (_newton3) p2.subF(F);  // 
+    if (_newton3) p2.subF(F); 
 }
 
 bool usesNewton3() const  { return _newton3; }
+bool allowsNewton3() const { return true; }
 
 private:
-    double _gravConst ; bool _newton3;
+    double _gravConst ; 
+    bool _newton3;
 };

@@ -12,7 +12,7 @@
 template <typename Particle_T>
 class LJFunctorGenerated : public Functor<Particle_T> {
 public:
-    LJFunctorGenerated(double sigma, double epsilon, bool newton3=false)
+    LJFunctorGenerated(double sigma, double epsilon, bool newton3)
       : _sigma(sigma), _epsilon(epsilon), _newton3(newton3) {}
 
     void AoSFunctor(Particle_T& p1, Particle_T& p2) override {
@@ -37,7 +37,9 @@ public:
         p1.addF(F);
         if (_newton3) p2.subF(F);
     }
-bool usesNewton3() const  { return _newton3; }
+    bool usesNewton3() const  { return _newton3; }
+    bool allowsNewton3() const { return true; }
+    
 
 private:
     double _sigma, _epsilon;
