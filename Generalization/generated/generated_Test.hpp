@@ -3,6 +3,8 @@
 #include "../Functors/Functor.h"
 #include "../Particle.h"
 #include <cmath>
+#include <array>
+#include "FastPow.hpp"
 
 template <class Particle_T>
 class TestFunctor_Gen : public Functor<Particle_T> {
@@ -40,9 +42,11 @@ public:
         const double fy = Fmag * dy * inv_r;
         const double fz = Fmag * dz * inv_r;
 
-        a.addF(fx, fy, fz);
+        std::array<double,3> F{fx, fy, fz};
+
+        a.addF(F);
         if (_newton3) {
-            b.addF(-fx, -fy, -fz);
+            b.subF(F);
         }
     }
 

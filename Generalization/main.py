@@ -7,6 +7,7 @@ import textwrap
 from replace import fix_exp  # pow -> std::pow, etc.
 
 
+
 def _validate_one(data: dict) -> dict:
     if not isinstance(data, dict):
         raise ValueError("YAML item must be a mapping (dict).")
@@ -105,6 +106,8 @@ def emit_header(
 #include "../Functors/Functor.h"
 #include "../Particle.h"
 #include <cmath>
+#include <array>
+#include "FastPow.hpp"
 
 template <class Particle_T>
 class {classname} : public Functor<Particle_T> {{
@@ -142,9 +145,11 @@ public:
         const double fy = Fmag * dy * inv_r;
         const double fz = Fmag * dz * inv_r;
 
-        a.addF(fx, fy, fz);
+        std::array<double,3> F{{fx, fy, fz}};
+
+        a.addF(F);
         if (_newton3) {{
-            b.addF(-fx, -fy, -fz);
+            b.subF(F);
         }}
     }}
 
