@@ -263,4 +263,4 @@ void balanceVectors(OuterContainerT &vecvec, F innerContainerToVec) {
   }
 }
 
-}  // namespace arrayUtils
+} 

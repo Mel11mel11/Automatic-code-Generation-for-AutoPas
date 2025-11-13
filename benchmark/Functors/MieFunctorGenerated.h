@@ -1,4 +1,4 @@
-// MieFunctorGenerated.h  (parametrelerini kendi header’ına göre ayarla)
+
 #pragma once
 #include "../Functors/Functor.h"
 #include "../Particle.h"
@@ -9,7 +9,7 @@
 template <typename Particle_T>
 class MieFunctorGenerated : public Functor<Particle_T> {
 public:
-    MieFunctorGenerated(double sigma, double epsilon, int n, int m, bool newton3=true)
+    MieFunctorGenerated(double sigma, double epsilon, int n, int m, bool newton3)
     : _sigma(sigma), _epsilon(epsilon), _n(n), _m(m), _newton3(newton3) {}
 
     void AoSFunctor(Particle_T& a, Particle_T& b) override {
@@ -18,18 +18,15 @@ public:
         double r2=dx*dx+dy*dy+dz*dz; 
         if(r2<1e-24) r2=1e-24;
         const double r=std::sqrt(r2), invr=1.0/r;
-        const double mag_fast = mie::computeForce(r, _epsilon, _sigma, _n, _m, false);
-        const double mag_safe = mie::computeForce(r, _epsilon, _sigma, _n, _m, true);
-        const std::array<double,3> F_fast{mag_fast*dx*invr, mag_fast*dy*invr, mag_fast*dz*invr};
-        const std::array<double,3> F_safe{mag_safe*dx*invr, mag_safe*dy*invr, mag_safe*dz*invr};
+        const double mag = mie::computeForce(r, _epsilon, _sigma, _n, _m);
+        const std::array<double,3> F_safe{mag*dx*invr, mag*dy*invr, mag*dz*invr};
 
-        a.addF(F_fast);
-        if (_newton3) b.subF(F_fast);
-        
-        /*a.addF(F_safe);
-        if (_newton3) b.subF(F_safe);*/
+       
+        a.addF(F_safe);
+        if (_newton3) b.subF(F_safe);
     }
     bool usesNewton3() const  { return _newton3; }
+    bool allowsNewton3() const { return true; }
 
 private: double _sigma,_epsilon; int _n,_m; bool _newton3;
 };

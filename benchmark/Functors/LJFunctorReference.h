@@ -4,11 +4,13 @@
 #include "Functor.h"
 #include <iostream>
 
+// credits:https://github.com/AutoPas/AutoPas/blob/feat/3xa/noble-gas-functors-ms2/applicationLibrary/molecularDynamics/molecularDynamicsLibrary/LJFunctor.h
+
 template <typename Particle_T>
 class LJFunctorReference : public Functor<Particle_T> {
 public:
     // Constructor with optional Newton3 flag
-    LJFunctorReference(double sigma, double epsilon, bool newton3 = false)
+    LJFunctorReference(double sigma, double epsilon, bool newton3)
         : Functor<Particle_T>(),
           _sigmaSquared(sigma * sigma),
           _epsilon24(epsilon * 24.0),
@@ -17,10 +19,10 @@ public:
     void AoSFunctor(Particle_T& p1, Particle_T& p2) override {
         using namespace arrayMath::literals;
 
-        auto dr = p1.getR() - p2.getR();          // vector with 3 dimensions x,y,z
+        auto dr = p1.getR() - p2.getR();          // 
         double dr2 = arrayMath::dot(dr, dr);      // squared distance and now it is scalar
-        constexpr double minR2 = 1e-8;     // üstte tanımla istersen
-        if (dr2 < minR2) dr2 = minR2;      // <-- değişken adı: dr2
+        constexpr double minR2 = 1e-8;     // 
+        if (dr2 < minR2) dr2 = minR2;      // 
            // avoid division by 0 yeah yeah that is a must
 
         double invdr2 = 1.0 / dr2;                  // that is for 1/r^2
@@ -34,7 +36,9 @@ public:
         p1.addF(F);
         if (_newton3) p2.subF(F);                 
     }
-bool usesNewton3() const  { return _newton3; }
+        bool usesNewton3() const  { return _newton3; }
+        bool allowsNewton3() const { return true; }
+    
 
 private:
     double _sigmaSquared{};

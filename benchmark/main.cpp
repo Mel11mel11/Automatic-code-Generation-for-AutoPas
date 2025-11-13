@@ -2,16 +2,17 @@
 #include "ArrayUtils.h"
 #include "ArrayMath.h"
 #include "Timer.h"
-#include <cmath>
-// Reference LJ
 #include "Functors/LJFunctorReference.h"
 #include "Functors/LJFunctorGenerated.h"
+#include "Functors/LJ_Oto.h"
 #include "Functors/MieFunctorGenerated.h"
 #include "Functors/MieFunctorReference.h"
 #include "Functors/GravFunctorGenerated.h"
 #include "Functors/GravFunctorReference.h"
-#include  "Functors/Automated_LJ.h"
+#include "Functors/KryptonFunctorGenerated.h"
+#include "Functors/KryptonFunctorReference.h"
 #include <vector>
+#include <cmath>
 #include <random>
 #include <iostream>
 #include <iomanip>
@@ -19,7 +20,6 @@
 
 using ParticleType = Particle;
 
-// static void zero_all(std::vector<ParticleType>& ps){ for(auto& p:ps) p.setF({0,0,0}); }
 static void zero_all(std::vector<ParticleType>& ps){
     for (auto& p : ps) p.setF(std::array<double,3>{0.0, 0.0, 0.0});
 }
@@ -29,7 +29,7 @@ static std::array<double,3> sumAllTwoWays(const std::vector<Particle>& ps){
     for(size_t i=0;i<ps.size();++i){
         const auto  f  = ps[i].getF();   // std::array<double,3>
         const double fx_arr = f[0];
-        const double fx_get = ps[i].getFx(); // tek-bileşen getter
+        const double fx_get = ps[i].getFx(); // 
 
         if(!std::isfinite(fx_arr) || !std::isfinite(fx_get)) ++nonFinite;
 
@@ -42,22 +42,11 @@ static std::array<double,3> sumAllTwoWays(const std::vector<Particle>& ps){
     return { (double)s_arr, (double)s_get, (double)maxAbs };
 }
 
-/*static double checksumFx(const std::vector<Particle>& ps){
-    double s = 0.0;
-    for (const auto& p : ps) {
-        const double fx = p.getFx();  //
-        if (!std::isfinite(fx)) {
-            std::cerr << "[ERR] non-finite Fx: " << fx << "\n";
-        }
-        s += fx;
-    }
-    return s;
-}*/
 static double checksumFx(const std::vector<ParticleType>& ps){ double s=0; for(auto& p:ps) s+=p.getF()[0]; return s; }
 
 template<class F>
  
-static long runPairs(std::vector<ParticleType>& ps, F& functor){
+static long runPairs(std::vector<ParticleType>& ps, F& functor){ // this func wanders around the molecule pairs and they it messes the time
     Timer t; t.start();
     const size_t N = ps.size();
     for (size_t i = 0; i < N; ++i)
@@ -67,11 +56,8 @@ static long runPairs(std::vector<ParticleType>& ps, F& functor){
     return t.getTotalTime();
 }
 
-
-
-
 int main(int argc,char** argv){
-// create a command line
+
     const std::string mode = (argc>=2)? argv[1] : "all"; 
 
     const size_t N = (argc>=3)? static_cast<size_t>(std::stoull(argv[2])) : 1000;
@@ -85,7 +71,7 @@ int main(int argc,char** argv){
         std::array<double,3>{0,0,0},
         std::array<double,3>{0,0,0},
     static_cast<int>(i),
-    1.0   // mass
+    1.0   
 );
 //
 auto grav_sanity = [](){
@@ -109,58 +95,53 @@ auto grav_sanity = [](){
     std::cout.flags(oldf); std::cout.precision(oldp);
 };
 
-grav_sanity();  
-
-
-
-
-//
-
-    //std::cout<<std::fixed<<std::setprecision(6);
+// grav_sanity();  
 
     auto bench = [&](const std::string& name, auto& functor){
     zero_all(ps); // make zero all particles
         zero_all(ps);
 
     long t_ns = runPairs(ps, functor);
-    auto sums = sumAllTwoWays(ps);  // iki farklı toplam + max|Fx|
-    //double sum = sums[0]; 
+    auto sums = sumAllTwoWays(ps); 
     double sum = checksumFx(ps);
     std::cout << name << "  N="<<N<<"  time="<<(t_ns/1e6)<<" ms  sumFx="<<sum << "\n";
     };
 
-     auto sanity_one_pair = [&](){
-    ParticleType a({0.1,0.2,0.3},{0,0,0},{0,0,0}, 0);
-    ParticleType b({0.9,0.8,0.7},{0,0,0},{0,0,0}, 1);
+    // auto sanity_one_pair = [&](){
+    // ParticleType a({0.1,0.2,0.3},{0,0,0},{0,0,0}, 0);
+    // ParticleType b({0.9,0.8,0.7},{0,0,0},{0,0,0}, 1);
 
-    LJFunctorReference<ParticleType> ref(1.0, 1.0, /*newton3*/ true);
-    LJFunctorGenerated<ParticleType> gen(1.0, 1.0, /*newton3*/ true);
+    // LJFunctorReference<ParticleType> ref(1.0, 1.0, /*newton3*/ true);
+   //  LJFunctorGenerated<ParticleType> gen(1.0, 1.0, /*newton3*/ true);
 
-    a.setF(std::array<double,3>{0,0,0});
-    b.setF(std::array<double,3>{0,0,0});
-    ref.AoSFunctor(a,b);
-    std::cerr<<"REF F1=("<<a.getF()[0]<<","<<a.getF()[1]<<","<<a.getF()[2]<<")  "
-             <<"F2=("<<b.getF()[0]<<","<<b.getF()[1]<<","<<b.getF()[2]<<")\n";
+    // a.setF(std::array<double,3>{0,0,0});
+    // b.setF(std::array<double,3>{0,0,0});
+    // ref.AoSFunctor(a,b);
+    //std::cerr<<"REF F1=("<<a.getF()[0]<<","<<a.getF()[1]<<","<<a.getF()[2]<<")  "
+            // <<"F2=("<<b.getF()[0]<<","<<b.getF()[1]<<","<<b.getF()[2]<<")\n";
 
-    a.setF(std::array<double,3>{0,0,0});
-    b.setF(std::array<double,3>{0,0,0});
-    gen.AoSFunctor(a,b);
-    std::cerr<<"GEN F1=("<<a.getF()[0]<<","<<a.getF()[1]<<","<<a.getF()[2]<<")  "
-             <<"F2=("<<b.getF()[0]<<","<<b.getF()[1]<<","<<b.getF()[2]<<")\n";
-};
+    // a.setF(std::array<double,3>{0,0,0});
+   // b.setF(std::array<double,3>{0,0,0});
+    //gen.AoSFunctor(a,b);
+    //std::cerr<<"GEN F1=("<<a.getF()[0]<<","<<a.getF()[1]<<","<<a.getF()[2]<<")  "
+            // <<"F2=("<<b.getF()[0]<<","<<b.getF()[1]<<","<<b.getF()[2]<<")\n";
+    //}; 
+
 
     
     const double sigma=1.0, epsilon=1.0;
     const int n=7, m=6;
     const double G=6.67430e-11;
-    sanity_one_pair();
+    //sanity_one_pair();
     if (mode=="lj" || mode=="all"){
         LJFunctorReference<ParticleType> ref(sigma,epsilon, true);
         LJFunctorGenerated<ParticleType> gen(sigma,epsilon,true);
-        Automated_LJ<ParticleType> auto_lj(true, sigma, epsilon);
+        LJ_Oto<ParticleType> hadioto_lj(sigma, epsilon, true);
+
         bench("LJ-REF ", ref);
         bench("LJ-GEN ", gen);
-        bench("LJ-AUTO", auto_lj);
+        bench("LJ-OTO ", hadioto_lj);
+        
     }
     if (mode == "mie" || mode == "all") {
         MieFunctorGenerated<ParticleType> mieSafe(sigma, epsilon, n, m, false);
@@ -168,6 +149,22 @@ grav_sanity();
 
         bench("MIE-SAFE", mieSafe);
         bench("MIE-REF ", mieRef);
+    }
+
+    if(mode=="krypton"|| mode=="all"){
+        
+    KryptonFunctorReference<ParticleType> kry_gen(1.213e4, 2.821, -0.748, 0.972, 13.29,
+        64.3,  307.2,  1096.0,
+        3670.0, 12600.0,  42800.0,
+        false);
+    KryptonFunctorGenerated<ParticleType> kryp_ref(
+        1.213e4, 2.821, -0.748, 0.972, 13.29,
+        64.3,  307.2,  1096.0,
+        3670.0, 12600.0,  42800.0,
+        false);
+     bench("KRY-REF", kry_gen);
+     bench("KRY-GEN", kryp_ref);
+
     }
 
     if (mode=="grav" || mode=="all"){
@@ -178,5 +175,3 @@ grav_sanity();
     }
     return 0;
 }
-
-//TODO: arguments n and m  for command line
