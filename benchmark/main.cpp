@@ -11,6 +11,7 @@
 #include "Functors/GravFunctorReference.h"
 #include "Functors/KryptonFunctorGenerated.h"
 #include "Functors/KryptonFunctorReference.h"
+#include "Functors/AutoKryptonFunctorGenerated_Gen.h"
 #include <vector>
 #include <cmath>
 #include <random>
@@ -155,15 +156,18 @@ auto grav_sanity = [](){
         
     KryptonFunctorReference<ParticleType> kry_gen(1.213e4, 2.821, -0.748, 0.972, 13.29,
         64.3,  307.2,  1096.0,
-        3670.0, 12600.0,  42800.0,
         false);
     KryptonFunctorGenerated<ParticleType> kryp_ref(
         1.213e4, 2.821, -0.748, 0.972, 13.29,
-        64.3,  307.2,  1096.0,
-        3670.0, 12600.0,  42800.0,
-        false);
+        64.3,  307.2,  1096.0, false);
+
+     AutoKryptonFunctorGenerated_Gen<ParticleType> autom(1.213e4, 2.821, -0.748, 0.972, 13.29,
+        64.3,  307.2,  1096.0, false); 
+
      bench("KRY-REF", kry_gen);
      bench("KRY-GEN", kryp_ref);
+     bench("KRY-AUTO", autom);
+
 
     }
 
