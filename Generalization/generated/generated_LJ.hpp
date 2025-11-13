@@ -3,6 +3,8 @@
 #include "../Functors/Functor.h"
 #include "../Particle.h"
 #include <cmath>
+#include <array>
+#include "FastPow.hpp"
 
 template <class Particle_T>
 class LJFunctor_Gen : public Functor<Particle_T> {
@@ -33,17 +35,19 @@ public:
         const double epsilon = _epsilon;
 
         // --- codegen: force magnitude F(r, params) ---
-        // Fmag = -4.0*epsilon*(6.0*std::pow(sigma, 6)/std::pow(r, 7) - 12.0*std::pow(sigma, 12)/std::pow(r, 13))
-        const double Fmag = -4.0*epsilon*(6.0*std::pow(sigma, 6)/std::pow(r, 7) - 12.0*std::pow(sigma, 12)/std::pow(r, 13));
+        // Fmag = -4.0*epsilon*(6.0*fast_pow(sigma, 6)/fast_pow(r, 7) - 12.0*fast_pow(sigma, 12)/fast_pow(r, 13))
+        const double Fmag = -4.0*epsilon*(6.0*fast_pow(sigma, 6)/fast_pow(r, 7) - 12.0*fast_pow(sigma, 12)/fast_pow(r, 13));
 
         // Vector force: F = Fmag * r̂
         const double fx = Fmag * dx * inv_r;
         const double fy = Fmag * dy * inv_r;
         const double fz = Fmag * dz * inv_r;
 
-        a.addF(fx, fy, fz);
+        std::array<double,3> F{fx, fy, fz};
+
+        a.addF(F);
         if (_newton3) {
-            b.addF(-fx, -fy, -fz);
+            b.subF(F);
         }
     }
 
