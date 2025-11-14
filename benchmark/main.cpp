@@ -4,7 +4,7 @@
 #include "Timer.h"
 #include "Functors/LJFunctorReference.h"
 #include "Functors/LJFunctorGenerated.h"
-#include "Functors/LJ_Oto.h"
+#include "Functors/LJFunctor_Gen.h"
 #include "Functors/MieFunctorGenerated.h"
 #include "Functors/MieFunctorReference.h"
 #include "Functors/MieFunctor_Gen.h"
@@ -138,20 +138,20 @@ auto grav_sanity = [](){
     if (mode=="lj" || mode=="all"){
         LJFunctorReference<ParticleType> ref(sigma,epsilon, true);
         LJFunctorGenerated<ParticleType> gen(sigma,epsilon,true);
-        LJ_Oto<ParticleType> hadioto_lj(sigma, epsilon, true);
+        LJFunctor_Gen<ParticleType> otolj(true, sigma, epsilon);
 
         bench("LJ-REF ", ref);
         bench("LJ-GEN ", gen);
-        bench("LJ-OTO ", hadioto_lj);
+        bench("LJ-OTO ", otolj);
         
     }
     if (mode == "mie" || mode == "all") {
         MieFunctorGenerated<ParticleType> mieSafe(sigma, epsilon, n, m, false);
         MieFunctorReference<ParticleType> mieRef(sigma, epsilon, n, m, false);
-        MieFunctor_Gen<ParticleType> mieGen(sigma, epsilon, n, m, false);
+        MieFunctor_Gen<ParticleType> mieOto(false,sigma, epsilon, n, m);
         bench("MIE-SAFE", mieSafe);
         bench("MIE-REF ", mieRef);
-        bench("MIE-GEN ", mieGen);
+        bench("MIE-Oto ", mieOto);
     }
 
     if(mode=="krypton"|| mode=="all"){
