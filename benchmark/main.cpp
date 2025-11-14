@@ -7,11 +7,12 @@
 #include "Functors/LJ_Oto.h"
 #include "Functors/MieFunctorGenerated.h"
 #include "Functors/MieFunctorReference.h"
+#include "Functors/MieFunctor_Gen.h"
 #include "Functors/GravFunctorGenerated.h"
 #include "Functors/GravFunctorReference.h"
 #include "Functors/KryptonFunctorGenerated.h"
 #include "Functors/KryptonFunctorReference.h"
-#include "Functors/AutoKryptonFunctorGenerated_Gen.h"
+#include "Functors/AutoKryptonFunctorGenerated.h"
 #include <vector>
 #include <cmath>
 #include <random>
@@ -147,9 +148,10 @@ auto grav_sanity = [](){
     if (mode == "mie" || mode == "all") {
         MieFunctorGenerated<ParticleType> mieSafe(sigma, epsilon, n, m, false);
         MieFunctorReference<ParticleType> mieRef(sigma, epsilon, n, m, false);
-
+        MieFunctor_Gen<ParticleType> mieGen(sigma, epsilon, n, m, false);
         bench("MIE-SAFE", mieSafe);
         bench("MIE-REF ", mieRef);
+        bench("MIE-GEN ", mieGen);
     }
 
     if(mode=="krypton"|| mode=="all"){
@@ -161,12 +163,12 @@ auto grav_sanity = [](){
         1.213e4, 2.821, -0.748, 0.972, 13.29,
         64.3,  307.2,  1096.0, false);
 
-     AutoKryptonFunctorGenerated_Gen<ParticleType> autom(1.213e4, 2.821, -0.748, 0.972, 13.29,
-        64.3,  307.2,  1096.0, false); 
+    AutoKryptonFunctorGenerated<ParticleType> krp(1.213e4, 2.821, -0.748, 0.972, 13.29,
+       64.3,  307.2,  1096.0, false); 
 
      bench("KRY-REF", kry_gen);
      bench("KRY-GEN", kryp_ref);
-     bench("KRY-AUTO", autom);
+     bench("KRY-AUTO", krp);
 
 
     }
