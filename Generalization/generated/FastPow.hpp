@@ -17,6 +17,14 @@ inline double fast_pow(double a, int e) noexcept {
     if (e == 11) { double t = a*a*a*a*a; return t*t*a; }
     if (e == 12) { double t = a*a*a; return t*t*t*t; }
     if (e == 13) { double t = a*a*a; return t*t*t*t*a; }
+    if (e == 14) { double t = a*a*a*a; return t*t*t*t; }
+    if (e == 15) { double t = a*a*a*a; return t*t*t*t*a; }
+    if (e == 16) { double t = a*a; double q = t*t; return q*q*q*q; }
+    if (e == 17) { double t = a*a; double q = t*t; return q*q*q*q*a; }
+    if (e == 18) { double t = a*a*a; double q = t*t*t; return q*q; }
+    if (e == 19) { double t = a*a*a; double q = t*t*t; return q*q*a; }
+    if (e == 20) { double t = a*a*a*a*a; double q = t*t; return q*q; }
+    
 //
     return std::pow(a, e);
 }
