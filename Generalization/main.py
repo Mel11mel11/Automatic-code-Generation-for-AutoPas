@@ -115,8 +115,7 @@ public:
     explicit {classname}(bool newton3 = {"true" if newton3_default else "false"}{ctor_param_sig})
         : _newton3(newton3){member_inits} {{}}
 
-    bool allowsNewton3() const override {{ return true; }}
-    bool usesNewton3()   const override {{ return _newton3; }}
+    
 
     void AoSFunctor(Particle_T& a, Particle_T& b) override {{
         // Displacement a -> b (keep the same direction convention as reference)
@@ -152,7 +151,8 @@ public:
             b.subF(F);
         }}
     }}
-
+     bool allowsNewton3() const  {{ return true; }}
+     bool usesNewton3()   const  {{ return _newton3; }}
 private:
     bool _newton3;
     {member_decls}
