@@ -9,8 +9,6 @@
 #include <cmath>
 #include "../Particle.h"
 
-// Credits: https://github.com/AutoPas/AutoPas/blob/feat/3xa/noble-gas-functors-ms2/applicationLibrary/molecularDynamics/molecularDynamicsLibrary/KryptonPairFunctor.h
-#pragma once
 template <typename Particle_T>
 class KryptonFunctorReference : public Functor<Particle_T> {
  public:
@@ -34,53 +32,78 @@ class KryptonFunctorReference : public Functor<Particle_T> {
 
     const double r = std::sqrt(r2sq);
 
-    // --- Exponential repulsion part (first term of Eq. (8)) ---
-    const double expAlphaTerm = std::exp(_a1 * r + _a2 * r * r + _a_m1 / r);
-    const double alphaTerm    = _a1 + 2.0 * _a2 * r - _a_m1 / (r * r);
-    const double firstTerm    = (-_A * alphaTerm * expAlphaTerm) / r;
+    // ----------------------------------------------------------
+    // 1) Exponential repulsion term: -d/dr [ A exp(a1 r + a2 r² + a-1 / r) ]
+    // ----------------------------------------------------------
+    const double fexp = _a1 * r + _a2 * r * r + _a_m1 / r;
+    const double expTerm = std::exp(fexp);
 
-    // --- Tang–Toennies-like damped dispersion (second term of Eq. (8)) ---
-    const double bR    = _b * r;
+    const double dfdr = _a1 + 2.0 * _a2 * r - _a_m1 / (r * r);
+    const double dV1dr = _A * dfdr * expTerm;
+
+    // Force contribution (scalar radial magnitude)
+    const double F1 = -dV1dr;
+
+    // ----------------------------------------------------------
+    // 2) Tang–Toennies damped dispersion (CORRECTED DERIVATIVE)
+    //     V_n = - C2n / r^(2n) [1 - e^{-b r} S_{0..2n}(b r)]
+    //     F_n = -dV_n/dr  --> (CORRECT FORM BELOW)
+    // ----------------------------------------------------------
+
+    const double bR = _b * r;
     const double expbr = std::exp(-bR);
 
-    // helper for the n-th dispersion contribution (for C_2n)
-    const auto TT = [&](int n, double C2n) {
-      double inner = 0.0;
+    auto TT = [&](int n, double C2n) {
+      //
+      // Compute the polynomial sum S = sum_{k=0}^{2n} (bR)^k / k!
+      //
+      double S = 0.0;
       for (int k = 0; k <= 2 * n; ++k) {
-        inner += std::pow(bR, k) / std::tgamma(k + 1.0);
+        S += std::pow(bR, k) / std::tgamma(k + 1.0);
       }
-      double term = C2n * std::pow(r, -2.0 * n) *
-                    (-2.0 * n +
-                     expbr * ((2.0 * n) * inner +
-                              bR * std::pow(bR, 2 * n) / std::tgamma(2 * n + 1.0)));
-      return term;
+
+      // Correct derivative of the Tang–Toennies-damped dispersion:
+      //
+      // F_n(r) =
+      //     C2n * r^(-(2n+1)) *
+      //       [ -2n + exp(-b r) * ( 2n * S + (bR)^(2n+1) / (2n)! ) ]
+      //
+      double term =
+        C2n * std::pow(r, -(2 * n + 1.0)) *
+        (
+          -2.0 * n
+          +
+          expbr *
+          (
+            (2.0 * n) * S
+            + std::pow(bR, 2 * n + 1) / std::tgamma(2.0 * n + 1.0)
+          )
+        );
+
+      return term;   // already the correct radial force contribution
     };
 
-    // ---- Dispersion coefficients ----
-    // Input: C6, C8, C10 are fitted parameters.
-    // Higher ones C12, C14, C16 are derived using the recursion (Eq. (9)):
-    //   C_12 = C_6  * (C_10 / C_8)^3
-    //   C_14 = C_8  * (C_12 / C_10)^3
-    //   C_16 = C_10 * (C_14 / C_12)^3
+    // Recursion for higher dispersion coefficients
     const double C12 = _C6  * std::pow(_C10 / _C8, 3.0);
     const double C14 = _C8  * std::pow(C12   / _C10, 3.0);
     const double C16 = _C10 * std::pow(C14   / C12, 3.0);
 
-    // n = 3..8  ->  C6, C8, C10, C12, C14, C16
-    const double term6   = TT(3, _C6);
-    const double term8   = TT(4, _C8);
-    const double term10  = TT(5, _C10);
-    const double term12  = TT(6, C12);
-    const double term14  = TT(7, C14);
-    const double term16  = TT(8, C16);
+    // Force contributions from n=3..8 (C6..C16)
+    const double F6  = TT(3, _C6);
+    const double F8  = TT(4, _C8);
+    const double F10 = TT(5, _C10);
+    const double F12 = TT(6, C12);
+    const double F14 = TT(7, C14);
+    const double F16 = TT(8, C16);
 
-    const double secondTerm = (term6 + term8 + term10 +
-                               term12 + term14 + term16) / (r * r);
+    const double F2 = F6 + F8 + F10 + F12 + F14 + F16;
 
-    const double Fmag = firstTerm + secondTerm;
+    // ----------------------------------------------------------
+    // Total radial force
+    // ----------------------------------------------------------
+    const double Fmag = F1 + F2;
 
-    // --- Turn scalar radial force into vector force ---
-    const double invr  = 1.0 / r;
+    const double invr = 1.0 / r;
     const double coeff = Fmag * invr;
 
     std::array<double, 3> F{coeff * dx, coeff * dy, coeff * dz};
@@ -92,7 +115,7 @@ class KryptonFunctorReference : public Functor<Particle_T> {
   }
 
   bool allowsNewton3() const  { return true; }
-  bool usesNewton3() const { return _newton3; }
+  bool usesNewton3() const    { return _newton3; }
 
  private:
   double _A, _a1, _a2, _a_m1, _b;
