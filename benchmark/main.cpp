@@ -12,7 +12,7 @@
 #include "Functors/GravFunctorReference.h"
 #include "Functors/KryptonFunctorGenerated.h"
 #include "Functors/KryptonFunctorReference.h"
-#include "Functors/AutoKryptonFunctorGenerated.h"
+#include "Functors/KryptonFunctorGenerated_Gen.h"
 #include <vector>
 #include <cmath>
 #include <random>
@@ -163,8 +163,10 @@ auto grav_sanity = [](){
         1.213e4, 2.821, -0.748, 0.972, 13.29,
         64.3,  307.2,  1096.0, false);
 
-    AutoKryptonFunctorGenerated<ParticleType> krp(1.213e4, 2.821, -0.748, 0.972, 13.29,
-       64.3,  307.2,  1096.0, false); 
+    KryptonFunctorGenerated_Gen<ParticleType> krp(
+        1.213e4, 2.821, -0.748, 0.972, 13.29,
+        64.3,  307.2,  1096.0,
+        false);  // sadece bool 
 
      bench("KRY-REF", kry_gen);
      bench("KRY-GEN", kryp_ref);
