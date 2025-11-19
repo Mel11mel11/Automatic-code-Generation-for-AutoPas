@@ -19,10 +19,10 @@ public:
     void AoSFunctor(Particle_T& p1, Particle_T& p2) override {
         using namespace arrayMath::literals;
 
-        auto dr = p1.getR() - p2.getR();          // 
-        double dr2 = arrayMath::dot(dr, dr);      // squared distance and now it is scalar
-        constexpr double minR2 = 1e-8;     // 
-        if (dr2 < minR2) dr2 = minR2;      // 
+        auto dr = p1.getR() - p2.getR();          
+        double dr2 = arrayMath::dot(dr, dr);      
+        constexpr double minR2 = 1e-8;    
+        if (dr2 < minR2) dr2 = minR2;     
            // avoid division by 0 yeah yeah that is a must
 
         double invdr2 = 1.0 / dr2;                  // that is for 1/r^2
