@@ -10,6 +10,7 @@
 #include "Functors/MieFunctor_Gen.h"
 #include "Functors/GravFunctorGenerated.h"
 #include "Functors/GravFunctorReference.h"
+#include "Functors/GravityFunctor_Gen.h"
 #include "Functors/KryptonFunctorGenerated.h"
 #include "Functors/KryptonFunctorReference.h"
 #include "Functors/KryptonFunctorGenerated_Gen.h"
@@ -137,7 +138,7 @@ auto grav_sanity = [](){
     //sanity_one_pair();
     if (mode=="lj" || mode=="all"){
         LJFunctorReference<ParticleType> ref(sigma,epsilon, true);
-        LJFunctorGenerated<ParticleType> gen(sigma,epsilon,true);
+        LJFunctorGenerated<ParticleType> gen(sigma,epsilon, true);
         LJFunctor_Gen<ParticleType> otolj(true, sigma, epsilon);
 
         bench("LJ-REF ", ref);
@@ -146,9 +147,9 @@ auto grav_sanity = [](){
         
     }
     if (mode == "mie" || mode == "all") {
-        MieFunctorGenerated<ParticleType> mieSafe(sigma, epsilon, n, m, false);
-        MieFunctorReference<ParticleType> mieRef(sigma, epsilon, n, m, false);
-        MieFunctor_Gen<ParticleType> mieOto(false,sigma, epsilon, n, m);
+        MieFunctorGenerated<ParticleType> mieSafe(sigma, epsilon, n, m, true);
+        MieFunctorReference<ParticleType> mieRef(sigma, epsilon, n, m, true);
+        MieFunctor_Gen<ParticleType> mieOto(sigma, epsilon, n, m, true);
         bench("MIE-SAFE", mieSafe);
         bench("MIE-REF ", mieRef);
         bench("MIE-Oto ", mieOto);
@@ -178,8 +179,10 @@ auto grav_sanity = [](){
     if (mode=="grav" || mode=="all"){
         GravFunctorGenerated<ParticleType> gGen(G,true);
         GravFunctorReference<ParticleType> gRef(G,true);
+        GravityFunctor_Gen<ParticleType> go(G,true);
         bench("GRAV-GEN", gGen);
         bench("GRAV-REF", gRef);
+        bench("GRAV-OTO", go);
     }
     return 0;
 }
