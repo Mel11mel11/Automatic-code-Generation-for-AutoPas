@@ -12,12 +12,8 @@ public:
     explicit MieFunctor_Gen(double sigma, double epsilon, double n, double m, bool newton3 = true)
         : _sigma(sigma), _epsilon(epsilon), _n(n), _m(m), _newton3(newton3)
     {
-
         _C = (_n / (_n - _m)) * std::pow(_n / _m, _m / (_n - _m));
-
-
     }
-
     void AoSFunctor(Particle_T& p1, Particle_T& p2) override {
         const auto& ra = p1.getR();
         const auto& rb = p2.getR();
