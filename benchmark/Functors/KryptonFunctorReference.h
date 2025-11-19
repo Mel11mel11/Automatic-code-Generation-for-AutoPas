@@ -38,22 +38,16 @@ class KryptonFunctorReference : public Functor<Particle_T> {
     const double invr = 1.0 / r;
     const double invr2 = invr * invr;
 
-    // ============================
-    // 1) Exponential repulsion
-    // ============================
+   
     const double expAlphaTerm = std::exp(_a1 * r + _a2 * r*r + _a_m1 * invr);
     const double alphaTerm = _a1 + 2.0*_a2*r - _a_m1*invr2;
 
-    // Bu F/r formunda! (TUM ile birebir)
     const double firstTerm = (-_A * alphaTerm * expAlphaTerm) * invr;
 
-    // ============================
-    // 2) Tang-Toennies damping
-    // ============================
     const double bdist  = _b * r;
     const double expbr  = std::exp(-bdist);
 
-    // bdist^n hesaplamaları
+
     const double b2 = bdist * bdist;
     const double b3 = b2 * bdist;
     const double b4 = b3 * bdist;
@@ -70,14 +64,14 @@ class KryptonFunctorReference : public Functor<Particle_T> {
     const double b15 = b14 * bdist;
     const double b16 = b15 * bdist;
 
-    // factorial^-1 tablosu (TUM’dan birebir)
+
     constexpr double invF[17] = {
         1.,1.,1./2.,1./6.,1./24.,1./120.,1./720.,1./5040.,1./40320.,
         1./362880.,1./3628800.,1./39916800.,1./479001600.,1./6227020800.,
         1./87178291200.,1./1307674368000.,1./20922789888000.
     };
 
-    // --- K-sum (TUM’a birebir) ---
+
     const double ksum0  = 1.0;
     const double ksum1  = bdist;
     const double ksum2  = b2  * invF[2];
@@ -103,7 +97,7 @@ class KryptonFunctorReference : public Functor<Particle_T> {
     const double ksumacc14 = ksumacc12 + ksum13 + ksum14;
     const double ksumacc16 = ksumacc14 + ksum15 + ksum16;
 
-    // r^-powers
+
     const double invr6  = invr2*invr2*invr2;
     const double invr8  = invr6 * invr2;
     const double invr10 = invr8 * invr2;
@@ -111,7 +105,7 @@ class KryptonFunctorReference : public Functor<Particle_T> {
     const double invr14 = invr12 * invr2;
     const double invr16 = invr14 * invr2;
 
-    // TUM formülü – dikkat: bunlar F_over_r’nin parçalarıdır (F/r)
+
     const double term6  = _C6  * invr6  * (-6  + expbr*(6  *ksumacc6  + bdist*ksum6));
     const double term8  = _C8  * invr8  * (-8  + expbr*(8  *ksumacc8  + bdist*ksum8));
     const double term10 = _C10 * invr10 * (-10 + expbr*(10 *ksumacc10 + bdist*ksum10));
@@ -119,17 +113,10 @@ class KryptonFunctorReference : public Functor<Particle_T> {
     const double term14 = _C14 * invr14 * (-14 + expbr*(14 *ksumacc14 + bdist*ksum14));
     const double term16 = _C16 * invr16 * (-16 + expbr*(16 *ksumacc16 + bdist*ksum16));
 
-    // --- İkinci term: F/r (TUM ile birebir) ---
     const double secondTerm = (term6 + term8 + term10 + term12 + term14 + term16) * invr2;
 
-    // ============================
-    // Toplam F_over_r
-    // ============================
     const double F_over_r = firstTerm + secondTerm;
 
-    // ============================
-    // Vektör kuvvet: F⃗ = r⃗ * (F/r)
-    // ============================
     const double Fx = F_over_r * dx;
     const double Fy = F_over_r * dy;
     const double Fz = F_over_r * dz;
