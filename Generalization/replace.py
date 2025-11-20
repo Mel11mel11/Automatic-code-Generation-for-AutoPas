@@ -22,7 +22,7 @@ def replace_pow(expression: str) -> str:
     def repl(m):
         base = m.group(1).strip()
         exp  = int(m.group(2))
-        if -12 <= exp <= 13:
+        if 0 <= exp <= 20:
             if exp == 0:  return "1.0"
             if exp == 1:  return base
             return f"fast_pow({base}, {exp})"

@@ -10,47 +10,50 @@ template <class Particle_T>
 class TestFunctor_Gen : public Functor<Particle_T> {
 public:
     explicit TestFunctor_Gen(bool newton3 = true)
-        : _newton3(newton3) {}
+        : _newton3(newton3)
+    {
 
-    bool allowsNewton3() const override { return true; }
-    bool usesNewton3()   const override { return _newton3; }
 
-    void AoSFunctor(Particle_T& a, Particle_T& b) override {
-        // Displacement a -> b (keep the same direction convention as reference)
-        const auto& ra = a.getR();
-        const auto& rb = b.getR();
+    }
+
+    void AoSFunctor(Particle_T& p1, Particle_T& p2) override {
+        const auto& ra = p1.getR();
+        const auto& rb = p2.getR();
         double dx = ra[0] - rb[0];
         double dy = ra[1] - rb[1];
         double dz = ra[2] - rb[2];
 
-        // r^2 and r; guard against r -> 0
         constexpr double EPS = 1e-24;
         double r2 = dx*dx + dy*dy + dz*dz;
         if (r2 < EPS) r2 = EPS;
+
         const double r = std::sqrt(r2);
         const double inv_r = 1.0 / r;
 
         // Parameter aliases
-        // (no parameters)
 
-        // --- codegen: force magnitude F(r, params) ---
-        // Fmag = -2.0*r
-        const double Fmag = -2.0*r;
 
-        // Vector force: F = Fmag * r̂
+
+
+        const double p1m = p1.getMass();
+        const double p2m = p2.getMass();
+
+        const double Fmag = -2*r;
+
         const double fx = Fmag * dx * inv_r;
         const double fy = Fmag * dy * inv_r;
         const double fz = Fmag * dz * inv_r;
 
         std::array<double,3> F{fx, fy, fz};
-
-        a.addF(F);
+        p1.addF(F);
         if (_newton3) {
-            b.subF(F);
+            p2.subF(F);
         }
     }
 
+    bool allowsNewton3() const { return true; }
+    bool usesNewton3() const { return _newton3; }
+
 private:
     bool _newton3;
-
 };

@@ -4,13 +4,9 @@ import sys
 import yaml
 import sympy as sp
 import textwrap
-from replace import fix_exp  # pow -> std::pow, etc.
-
-
+from replace import fix_exp
 
 def _validate_one(data: dict) -> dict:
-    if not isinstance(data, dict):
-        raise ValueError("YAML item must be a mapping (dict).")
     name = data.get("name")
     expr = data.get("expression")
     out = data.get("output", {}) or {}
@@ -20,15 +16,7 @@ def _validate_one(data: dict) -> dict:
     params = data.get("parameters", {}) or {}
 
     if not all([name, expr, classname, filename]):
-        raise ValueError(
-            "YAML item validation error: 'name', 'expression', 'output.classname', and 'output.filename' are required."
-        )
-
-    for k, v in params.items():
-        if not isinstance(k, str):
-            raise ValueError(f"Parameter name must be string, got: {k!r}")
-        if not isinstance(v, (int, float, str, type(None))):
-            raise ValueError(f"Parameter '{k}' must be number or string, got: {type(v)}")
+        raise ValueError("Missing required fields")
 
     newton3_default = bool(options.get("newton3", True))
     eps_guard = float(options.get("avoid_r2_zero", 1e-24))
@@ -45,62 +33,171 @@ def _validate_one(data: dict) -> dict:
 
 
 def load_yaml_many(path: str) -> list[dict]:
-    if not os.path.isfile(path):
-        raise FileNotFoundError(f"YAML not found: {path}")
-
-    with open(path, "r", encoding="utf-8") as f:
+    with open(path, "r") as f:
         docs = list(yaml.safe_load_all(f))
 
-    items: list[dict] = []
+    items = []
     for doc in docs:
-        if doc is None:
+        if not doc:
             continue
-        # case A: potentials: [ {...}, {...} ]
-        if isinstance(doc, dict) and "potentials" in doc and isinstance(doc["potentials"], list):
+        if isinstance(doc, dict) and "potentials" in doc:
             for it in doc["potentials"]:
                 items.append(_validate_one(it))
-        # case B: single flat item
         elif isinstance(doc, dict):
             items.append(_validate_one(doc))
-        # other types are ignored
 
-    if not items:
-        raise ValueError("No valid potentials found. Use '---' multi-doc or 'potentials: [ ... ]' list.")
     return items
 
 
-def calculate_force(expr_str: str, param_names: list[str]):
+# ==========================
+#  DISPERSION COEFFICIENTS
+# ==========================
+def compute_dispersion_coeffs_sympy():
+    C6 = sp.Symbol("C6", real=True)
+    C8 = sp.Symbol("C8", real=True)
+    C10 = sp.Symbol("C10", real=True)
+
+    C12 = C6 * (C10 / C8)**3
+    C14 = C8 * (C12 / C10)**3
+    C16 = C10 * (C14 / C12)**3
+    return C12, C14, C16
+
+
+# ==========================
+#  CALCULATE FORCE
+# ==========================
+def calculate_force(expr_str: str, param_names: list[str], add_dispersion=False):
     r = sp.Symbol("r", positive=True)
     sym_locals = {"r": r}
+
+    # Parametre sembolleri
     for pname in param_names:
         sym_locals[pname] = sp.Symbol(pname, real=True)
 
-    U = sp.sympify(expr_str, locals=sym_locals)
-    F = -sp.diff(U, r)
-    F = sp.nsimplify(F)
-    F = sp.N(F)
+    # Krypton / Tang-Toennies ise:
+    if add_dispersion:
+        C12, C14, C16 = compute_dispersion_coeffs_sympy()
+        sym_locals["C12"] = C12
+        sym_locals["C14"] = C14
+        sym_locals["C16"] = C16
 
+    # Expression → SymPy
+    U = sp.sympify(expr_str, locals=sym_locals)
+
+    # Sum(...) kapat
+    U = U.doit()
+    U = sp.simplify(U)
+
+    # Kuvvet
+    F = -sp.diff(U, r)
+    F = F.doit()
+    F = sp.simplify(F)
+
+    # C++ kodu
     F_c = sp.ccode(F)
     F_std = fix_exp(F_c)
-    return F, F_c, F_std
 
+    return F_std
 
 def emit_header(
-    classname: str,
-    F_code: str,
-    newton3_default: bool,
-    eps_guard: float,
-    src_yaml: str,
-    param_names: list[str],
-) -> str:
-   
+    classname, F_code, newton3_default, eps_guard, param_names, add_dispersion
+):
+    # -----------------------------
+    # 1) Constructor param listesi
+    # -----------------------------
+    if param_names:
+        ctor_param_sig = ", ".join([f"double {p}" for p in param_names]) + ", "
+    else:
+        ctor_param_sig = ""
 
-    member_inits = ", ".join([f"_{p}({p})" for p in param_names])
-    member_inits = (", " + member_inits) if member_inits else ""
-    local_aliases = "\n        ".join([f"const double {p} = _{p};" for p in param_names]) if param_names else "// (no parameters)"
-    member_decls = "\n    ".join([f"double _{p};" for p in param_names]) if param_names else ""
-    ctor_param_sig = (", " + ", ".join([f"double {p}" for p in param_names])) if param_names else ""
+    ctor_param_sig += f"bool newton3 = {'true' if newton3_default else 'false'}"
 
+    # -----------------------------
+    # 2) init-list (newton3 EN SONDA)
+    # -----------------------------
+    init_list_elems = []
+
+    # önce tüm parametre üyeleri:
+    for p in param_names:
+        init_list_elems.append(f"_{p}({p})")
+
+    # Krypton için dispersion:
+    if add_dispersion:
+        # ctor body içinde dolduruyoruz
+        init_list_elems += ["_C12(0)", "_C14(0)", "_C16(0)"]
+
+    # en sonda newton3:
+    init_list_elems.append("_newton3(newton3)")
+
+    init_list = ", ".join(init_list_elems)
+
+    # -----------------------------
+    # 3) Parameter aliases (AoSFunctor içinde)
+    # -----------------------------
+    alias_list = [f"const double {p} = _{p};" for p in param_names]
+
+    # Mie potansiyeli için C alias
+    if classname.lower().startswith("mie"):
+        alias_list.append("const double C = _C;")
+
+    # Krypton için aliaslar
+    if add_dispersion:
+        alias_list += [
+            "const double C12 = _C12;",
+            "const double C14 = _C14;",
+            "const double C16 = _C16;",
+        ]
+
+    local_aliases = "\n        ".join(alias_list)
+
+    # -----------------------------
+    # 4) member declarations (newton3 EN SONDA)
+    # -----------------------------
+    member_decls_list = []
+
+    # önce tüm parametreler
+    for p in param_names:
+        member_decls_list.append(f"double _{p};")
+
+    # Mie potansiyeli için C değişkeni
+    if classname.lower().startswith("mie"):
+        member_decls_list.append("double _C;")
+
+    # Krypton için yeni C değerleri
+    if add_dispersion:
+        member_decls_list += ["double _C12;", "double _C14;", "double _C16;"]
+
+    # newton3 en sonunda
+    member_decls_list.append("bool _newton3;")
+
+    # İşte sende eksik olan satır:
+    member_decls = "\n    ".join(member_decls_list)
+
+    # -----------------------------
+    # 5) Mie runtime C hesaplama
+    # -----------------------------
+    if classname.lower().startswith("mie"):
+        mie_runtime = """
+        _C = (_n / (_n - _m)) * std::pow(_n / _m, _m / (_n - _m));
+        """
+    else:
+        mie_runtime = ""
+
+    # -----------------------------
+    # 6) Krypton runtime hesaplama
+    # -----------------------------
+    if add_dispersion:
+        dispersion_runtime = """
+        _C12 = _C6 * std::pow(_C10 / _C8, 3.0);
+        _C14 = _C8 * std::pow(_C12 / _C10, 3.0);
+        _C16 = _C10 * std::pow(_C14 / _C12, 3.0);
+        """
+    else:
+        dispersion_runtime = ""
+
+    # -----------------------------
+    # 7) Final C++ header
+    # -----------------------------
     body = f"""
 #pragma once
 #include "../Functors/Functor.h"
@@ -112,100 +209,97 @@ def emit_header(
 template <class Particle_T>
 class {classname} : public Functor<Particle_T> {{
 public:
-    explicit {classname}(bool newton3 = {"true" if newton3_default else "false"}{ctor_param_sig})
-        : _newton3(newton3){member_inits} {{}}
+    explicit {classname}({ctor_param_sig})
+        : {init_list}
+    {{
+        {mie_runtime}
+        {dispersion_runtime}
+    }}
 
-    
-
-    void AoSFunctor(Particle_T& a, Particle_T& b) override {{
-        // Displacement a -> b (keep the same direction convention as reference)
-        const auto& ra = a.getR();
-        const auto& rb = b.getR();
+    void AoSFunctor(Particle_T& p1, Particle_T& p2) override {{
+        const auto& ra = p1.getR();
+        const auto& rb = p2.getR();
         double dx = ra[0] - rb[0];
         double dy = ra[1] - rb[1];
         double dz = ra[2] - rb[2];
 
-        // r^2 and r; guard against r -> 0
         constexpr double EPS = {eps_guard};
         double r2 = dx*dx + dy*dy + dz*dz;
         if (r2 < EPS) r2 = EPS;
+
         const double r = std::sqrt(r2);
         const double inv_r = 1.0 / r;
 
         // Parameter aliases
         {local_aliases}
+        
 
-        // --- codegen: force magnitude F(r, params) ---
-        // Fmag = {F_code}
+        
+        const double p1m = p1.getMass();
+        const double p2m = p2.getMass();
+
         const double Fmag = {F_code};
 
-        // Vector force: F = Fmag * r̂
         const double fx = Fmag * dx * inv_r;
         const double fy = Fmag * dy * inv_r;
         const double fz = Fmag * dz * inv_r;
 
         std::array<double,3> F{{fx, fy, fz}};
-
-        a.addF(F);
+        p1.addF(F);
         if (_newton3) {{
-            b.subF(F);
+            p2.subF(F);
         }}
     }}
-     bool allowsNewton3() const  {{ return true; }}
-     bool usesNewton3()   const  {{ return _newton3; }}
+
+    bool allowsNewton3() const {{ return true; }}
+    bool usesNewton3() const {{ return _newton3; }}
+
 private:
-    bool _newton3;
     {member_decls}
 }};
 """
     return textwrap.dedent(body)
 
 
+# ==========================
+#  MAIN
+# ==========================
 def main():
-    # Usage: python3 script.py <spec.yaml> <out_dir>
     if len(sys.argv) < 3:
-        print("Usage: python3 <script.py> <spec.yaml> <out_dir/>")
+        print("Usage: python3 main.py <spec.yaml> <out_dir/>")
         sys.exit(1)
 
     yaml_path = sys.argv[1]
     out_dir = sys.argv[2]
 
-    try:
-        os.makedirs(out_dir, exist_ok=True)
-        cfg_list = load_yaml_many(yaml_path)
+    os.makedirs(out_dir, exist_ok=True)
 
-        # Optional: deduplicate filenames/classnames early
-        seen_files, seen_classes = set(), set()
-        for cfg in cfg_list:
-            if cfg["filename"] in seen_files:
-                raise ValueError(f"Duplicate output filename: {cfg['filename']}")
-            if cfg["classname"] in seen_classes:
-                raise ValueError(f"Duplicate classname: {cfg['classname']}")
-            seen_files.add(cfg["filename"])
-            seen_classes.add(cfg["classname"])
+    cfg_list = load_yaml_many(yaml_path)
 
-        for cfg in cfg_list:
-            param_names = list(cfg["parameters"].keys())
-            _, _, F_std = calculate_force(cfg["expr_str"], param_names)
+    for cfg in cfg_list:
+        name = cfg["name"]
+        params = cfg["parameters"]
+        param_names = list(params.keys())
 
-            header_str = emit_header(
-                classname=cfg["classname"],
-                F_code=F_std,
-                newton3_default=cfg["newton3_default"],
-                eps_guard=cfg["eps_guard"],
-                src_yaml=yaml_path,
-                param_names=param_names,
-            )
+        # Krypton/Tang–Toennies kontrolü
+        add_dispersion = all(x in param_names for x in ["C6", "C8", "C10"])
 
-            out_path = os.path.join(out_dir, cfg["filename"])
-            with open(out_path, "w", encoding="utf-8") as f:
-                f.write(header_str)
+        F_std = calculate_force(cfg["expr_str"], param_names, add_dispersion)
 
-            print(f"[ok] Functor created: {out_path}")
+        header = emit_header(
+            classname=cfg["classname"],
+            F_code=F_std,
+            newton3_default=cfg["newton3_default"],
+            eps_guard=cfg["eps_guard"],
+            param_names=param_names,
+            add_dispersion=add_dispersion
+        )
 
-    except Exception as e:
-        print(f"[ERROR] {e}")
-        sys.exit(2)
+        with open(os.path.join(out_dir, cfg["filename"]), "w") as f:
+            f.write(header)
+
+        print(f"[ok] Functor created: {cfg['filename']}")
+
 
 if __name__ == "__main__":
     main()

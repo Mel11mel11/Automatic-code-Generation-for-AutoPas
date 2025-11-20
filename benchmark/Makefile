@@ -26,7 +26,7 @@ testcheck: $(TEST_TARGET)
 	@val=$$(grep "max|ΔF|" test_output.txt | grep -Eo "[0-9]+\.[0-9]+e[+-]?[0-9]+"); \
 	thr=1e-12; \
 	echo "→ Detected max|ΔF| = $$val (threshold $$thr)"; \
-	awk -v v=$$val -v t=$$thr 'BEGIN {if (v+0 <= t) exit 0; else exit 1}' && \
+	awk -v v="$$VAL" -v t=$$thr 'BEGIN {if (v+0 <= t) exit 0; else exit 1}' && \
 		echo "Tests passed. Building benchmark..." || \
 		( echo "Tests failed! benchmark build aborted."; exit 1 )
 
