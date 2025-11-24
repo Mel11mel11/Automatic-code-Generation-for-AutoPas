@@ -40,7 +40,7 @@ std::vector<Particle> makeGrid(int N, double spacing) {
     return ps;
 }
 
-// -----------------------------------------
+
 template<class F,class P>
 void runPairs(std::vector<P>& ps, F& functor) {
     size_t N = ps.size();
@@ -91,9 +91,6 @@ void testPotential(const std::string& name,
     std::cout << "max|ΔF| = " << dmax << "\n";
 }
 
-// -----------------------------------------
-// MAIN
-// -----------------------------------------
 int main() {
 
     const int N = 4;
