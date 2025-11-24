@@ -10,7 +10,7 @@ make all --print-data-base --no-builtin-variables --no-builtin-rules --question
 make: *** No rule to make target `all'.  Stop.
 
 
-# Make data base, printed on Thu Nov 20 10:55:20 2025
+# Make data base, printed on Mon Nov 24 14:58:43 2025
 
 # Variables
 
@@ -28,7 +28,6 @@ VSCODE_CRASH_REPORTER_PROCESS_TYPE = extensionHost
 ?D = $(patsubst %/,%,$(dir $?))
 # automatic
 @D = $(patsubst %/,%,$(dir $@))
- 
 # automatic
 @F = $(notdir $@)
 # makefile
@@ -90,7 +89,7 @@ VSCODE_CODE_CACHE_PATH = /Users/melisaaslan/Library/Application Support/Code/Cac
 # environment
 LOGNAME = melisaaslan
 # environment
-APPLICATION_INSIGHTS_NO_DIAGNOSTIC_CHANNEL = 1
+APPLICATION_INSIGHTS_NO_DIAGNOSTIC_CHANNEL = true
 # environment
 CONDA_PROMPT_MODIFIER = (base) 
 # environment
@@ -145,10 +144,7 @@ XPC_SERVICE_NAME = application.com.microsoft.VSCode.22767268.22767274
 HOMEBREW_PREFIX = /opt/homebrew
 # automatic
 +D = $(patsubst %/,%,$(dir $+))
-# environment
-VSCODE_L10N_BUNDLE_LOCATION = file:///Users/melisaaslan/.vscode/extensions/ms-ceintl.vscode-language-pack-de-1.91.2024071009/translations/extensions/vscode.json-language-features.i18n.json
 # automatic
- 
 +F = $(notdir $+)
 # environment
 HOMEBREW_REPOSITORY = /opt/homebrew
@@ -181,7 +177,7 @@ VSCODE_PID = 6939
 # environment
 LANG = C
 # variable set hash-table stats:
-# Load=82/1024=8%, Rehash=0, Collisions=2/103=2%
+# Load=81/1024=8%, Rehash=0, Collisions=2/102=2%
 
 # Pattern-specific Variable Values
 
@@ -221,6 +217,7 @@ Makefile:
 #  File does not exist.
 #  File has been updated.
 #  Failed to be updated.
+ 
 # variable set hash-table stats:
 # Load=0/32=0%, Rehash=0, Collisions=0/0=0%
 
@@ -263,6 +260,6 @@ GNUmakefile:
 # strcache size: total = 0 / max = 0 / min = 4096 / avg = 0
 # strcache free: total = 0 / max = 0 / min = 4096 / avg = 0
 
-# Finished Make data base on Thu Nov 20 10:55:20 2025
+# Finished Make data base on Mon Nov 24 14:58:43 2025
 
  
