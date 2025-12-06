@@ -45,7 +45,7 @@ class KryptonFunctorReference : public Functor<Particle_T> {
     const double firstTerm = (-_A * alphaTerm * expAlphaTerm) * invr;
 
     const double bdist  = _b * r;
-    const double expbr  = std::exp(-bdist);
+    const double expbr  = std::exp(-bdist); // buraya bak krypton için mutlaka belki alggemeine vereifacxhung bulursun
 
 
     const double b2 = bdist * bdist;

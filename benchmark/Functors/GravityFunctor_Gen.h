@@ -28,15 +28,18 @@ public:
 
         const double r = std::sqrt(r2);
         const double inv_r = 1.0 / r;
+
         // Parameter aliases
         const double G = _G;
-        // Parameter aliases
 
-        // Gravity mass aliases
         const double p1m = p1.getMass();
         const double p2m = p2.getMass();
 
-        const double Fmag = -G*p1m*p2m/fast_pow(r, 2);        
+        // Level-2 optimized temporaries
+
+
+        // Final force magnitude
+        const double Fmag = -G*fast_pow(inv_r, 2)*p1m*p2m;
 
         const double fx = Fmag * dx * inv_r;
         const double fy = Fmag * dy * inv_r;
