@@ -4,19 +4,17 @@
 #include "../Particle.h"
 #include <cmath>
 #include <array>
-#include "FastPow.hpp"
 
-template <class Particle_T>
+template<class Particle_T>
 class KryptonFunctorGenerated_Gen : public Functor<Particle_T> {
 public:
     explicit KryptonFunctorGenerated_Gen(double A, double a1, double a2, double a_m1, double b, double C6, double C8, double C10, bool newton3 = true)
-        : _A(A), _a1(a1), _a2(a2), _a_m1(a_m1), _b(b), _C6(C6), _C8(C8), _C10(C10), _C12(0), _C14(0), _C16(0), _newton3(newton3)
+        : _A(A), _a1(a1), _a2(a2), _a_m1(a_m1), _b(b), _C6(C6), _C8(C8), _C10(C10), _C12(0.0), _C14(0.0), _C16(0.0), _newton3(newton3)
     {
-
+        // Precompute higher dispersion coefficients once per functor
         _C12 = _C6 * std::pow(_C10 / _C8, 3.0);
         _C14 = _C8 * std::pow(_C12 / _C10, 3.0);
         _C16 = _C10 * std::pow(_C14 / _C12, 3.0);
-
     }
 
     void AoSFunctor(Particle_T& p1, Particle_T& p2) override {
@@ -28,11 +26,11 @@ public:
 
         constexpr double EPS = 1e-24;
         double r2 = dx*dx + dy*dy + dz*dz;
-        if (r2 < EPS) r2 = EPS;
+        if(r2 < EPS) r2 = EPS;
 
         const double r = std::sqrt(r2);
         const double inv_r = 1.0 / r;
-        // Parameter aliases
+
         const double A = _A;
         const double a1 = _a1;
         const double a2 = _a2;
@@ -44,21 +42,84 @@ public:
         const double C12 = _C12;
         const double C14 = _C14;
         const double C16 = _C16;
-        const double Fmag = (1.0/20922789888000.0)*(-20922789888000*A*fast_pow(C8, 15)*a1*fast_pow(r, 17)*std::exp(a1*r + a2*fast_pow(r, 2) + a_m1/r + b*r) - 41845579776000*A*fast_pow(C8, 15)*a2*fast_pow(r, 18)*std::exp(a1*r + a2*fast_pow(r, 2) + a_m1/r + b*r) + 20922789888000*A*fast_pow(C8, 15)*a_m1*fast_pow(r, 15)*std::exp(a1*r + a2*fast_pow(r, 2) + a_m1/r + b*r) + fast_pow(C10, 10)*fast_pow(C6, 6)*fast_pow(b, 17)*fast_pow(r, 17) + 16*fast_pow(C10, 10)*fast_pow(C6, 6)*fast_pow(b, 16)*fast_pow(r, 16) + 256*fast_pow(C10, 10)*fast_pow(C6, 6)*fast_pow(b, 15)*fast_pow(r, 15) + 3840*fast_pow(C10, 10)*fast_pow(C6, 6)*fast_pow(b, 14)*fast_pow(r, 14) + 53760*fast_pow(C10, 10)*fast_pow(C6, 6)*fast_pow(b, 13)*fast_pow(r, 13) + 698880*fast_pow(C10, 10)*fast_pow(C6, 6)*fast_pow(b, 12)*fast_pow(r, 12) + 8386560*fast_pow(C10, 10)*fast_pow(C6, 6)*fast_pow(b, 11)*fast_pow(r, 11) + 92252160*fast_pow(C10, 10)*fast_pow(C6, 6)*fast_pow(b, 10)*fast_pow(r, 10) + 922521600*fast_pow(C10, 10)*fast_pow(C6, 6)*fast_pow(b, 9)*fast_pow(r, 9) + 8302694400*fast_pow(C10, 10)*fast_pow(C6, 6)*fast_pow(b, 8)*fast_pow(r, 8) + 66421555200*fast_pow(C10, 10)*fast_pow(C6, 6)*fast_pow(b, 7)*fast_pow(r, 7) + 464950886400*fast_pow(C10, 10)*fast_pow(C6, 6)*fast_pow(b, 6)*fast_pow(r, 6) + 2789705318400*fast_pow(C10, 10)*fast_pow(C6, 6)*fast_pow(b, 5)*fast_pow(r, 5) + 13948526592000*fast_pow(C10, 10)*fast_pow(C6, 6)*fast_pow(b, 4)*fast_pow(r, 4) + 55794106368000*fast_pow(C10, 10)*fast_pow(C6, 6)*fast_pow(b, 3)*fast_pow(r, 3) + 167382319104000*fast_pow(C10, 10)*fast_pow(C6, 6)*fast_pow(b, 2)*fast_pow(r, 2) + 334764638208000*fast_pow(C10, 10)*fast_pow(C6, 6)*b*r - 334764638208000*fast_pow(C10, 10)*fast_pow(C6, 6)*std::exp(b*r) + 334764638208000*fast_pow(C10, 10)*fast_pow(C6, 6) + 240*fast_pow(C10, 6)*fast_pow(C6, 3)*fast_pow(C8, 7)*fast_pow(b, 15)*fast_pow(r, 17) + 3360*fast_pow(C10, 6)*fast_pow(C6, 3)*fast_pow(C8, 7)*fast_pow(b, 14)*fast_pow(r, 16) + 47040*fast_pow(C10, 6)*fast_pow(C6, 3)*fast_pow(C8, 7)*fast_pow(b, 13)*fast_pow(r, 15) + 611520*fast_pow(C10, 6)*fast_pow(C6, 3)*fast_pow(C8, 7)*fast_pow(b, 12)*fast_pow(r, 14) + 7338240*fast_pow(C10, 6)*fast_pow(C6, 3)*fast_pow(C8, 7)*fast_pow(b, 11)*fast_pow(r, 13) + 80720640*fast_pow(C10, 6)*fast_pow(C6, 3)*fast_pow(C8, 7)*fast_pow(b, 10)*fast_pow(r, 12) + 807206400*fast_pow(C10, 6)*fast_pow(C6, 3)*fast_pow(C8, 7)*fast_pow(b, 9)*fast_pow(r, 11) + 7264857600*fast_pow(C10, 6)*fast_pow(C6, 3)*fast_pow(C8, 7)*fast_pow(b, 8)*fast_pow(r, 10) + 58118860800*fast_pow(C10, 6)*fast_pow(C6, 3)*fast_pow(C8, 7)*fast_pow(b, 7)*fast_pow(r, 9) + 406832025600*fast_pow(C10, 6)*fast_pow(C6, 3)*fast_pow(C8, 7)*fast_pow(b, 6)*fast_pow(r, 8) + 2440992153600*fast_pow(C10, 6)*fast_pow(C6, 3)*fast_pow(C8, 7)*fast_pow(b, 5)*fast_pow(r, 7) + 12204960768000*fast_pow(C10, 6)*fast_pow(C6, 3)*fast_pow(C8, 7)*fast_pow(b, 4)*fast_pow(r, 6) + 48819843072000*fast_pow(C10, 6)*fast_pow(C6, 3)*fast_pow(C8, 7)*fast_pow(b, 3)*fast_pow(r, 5) + 146459529216000*fast_pow(C10, 6)*fast_pow(C6, 3)*fast_pow(C8, 7)*fast_pow(b, 2)*fast_pow(r, 4) + 292919058432000*fast_pow(C10, 6)*fast_pow(C6, 3)*fast_pow(C8, 7)*b*fast_pow(r, 3) - 292919058432000*fast_pow(C10, 6)*fast_pow(C6, 3)*fast_pow(C8, 7)*fast_pow(r, 2)*std::exp(b*r) + 292919058432000*fast_pow(C10, 6)*fast_pow(C6, 3)*fast_pow(C8, 7)*fast_pow(r, 2) + 43680*fast_pow(C10, 3)*C6*fast_pow(C8, 12)*fast_pow(b, 13)*fast_pow(r, 17) + 524160*fast_pow(C10, 3)*C6*fast_pow(C8, 12)*fast_pow(b, 12)*fast_pow(r, 16) + 6289920*fast_pow(C10, 3)*C6*fast_pow(C8, 12)*fast_pow(b, 11)*fast_pow(r, 15) + 69189120*fast_pow(C10, 3)*C6*fast_pow(C8, 12)*fast_pow(b, 10)*fast_pow(r, 14) + 691891200*fast_pow(C10, 3)*C6*fast_pow(C8, 12)*fast_pow(b, 9)*fast_pow(r, 13) + 6227020800*fast_pow(C10, 3)*C6*fast_pow(C8, 12)*fast_pow(b, 8)*fast_pow(r, 12) + 49816166400*fast_pow(C10, 3)*C6*fast_pow(C8, 12)*fast_pow(b, 7)*fast_pow(r, 11) + 348713164800*fast_pow(C10, 3)*C6*fast_pow(C8, 12)*fast_pow(b, 6)*fast_pow(r, 10) + 2092278988800*fast_pow(C10, 3)*C6*fast_pow(C8, 12)*fast_pow(b, 5)*fast_pow(r, 9) + 10461394944000*fast_pow(C10, 3)*C6*fast_pow(C8, 12)*fast_pow(b, 4)*fast_pow(r, 8) + 41845579776000*fast_pow(C10, 3)*C6*fast_pow(C8, 12)*fast_pow(b, 3)*fast_pow(r, 7) + 125536739328000*fast_pow(C10, 3)*C6*fast_pow(C8, 12)*fast_pow(b, 2)*fast_pow(r, 6) + 251073478656000*fast_pow(C10, 3)*C6*fast_pow(C8, 12)*b*fast_pow(r, 5) - 251073478656000*fast_pow(C10, 3)*C6*fast_pow(C8, 12)*fast_pow(r, 4)*std::exp(b*r) + 251073478656000*fast_pow(C10, 3)*C6*fast_pow(C8, 12)*fast_pow(r, 4) + 5765760*C10*fast_pow(C8, 15)*fast_pow(b, 11)*fast_pow(r, 17) + 57657600*C10*fast_pow(C8, 15)*fast_pow(b, 10)*fast_pow(r, 16) + 576576000*C10*fast_pow(C8, 15)*fast_pow(b, 9)*fast_pow(r, 15) + 5189184000*C10*fast_pow(C8, 15)*fast_pow(b, 8)*fast_pow(r, 14) + 41513472000*C10*fast_pow(C8, 15)*fast_pow(b, 7)*fast_pow(r, 13) + 290594304000*C10*fast_pow(C8, 15)*fast_pow(b, 6)*fast_pow(r, 12) + 1743565824000*C10*fast_pow(C8, 15)*fast_pow(b, 5)*fast_pow(r, 11) + 8717829120000*C10*fast_pow(C8, 15)*fast_pow(b, 4)*fast_pow(r, 10) + 34871316480000*C10*fast_pow(C8, 15)*fast_pow(b, 3)*fast_pow(r, 9) + 104613949440000*C10*fast_pow(C8, 15)*fast_pow(b, 2)*fast_pow(r, 8) + 209227898880000*C10*fast_pow(C8, 15)*b*fast_pow(r, 7) - 209227898880000*C10*fast_pow(C8, 15)*fast_pow(r, 6)*std::exp(b*r) + 209227898880000*C10*fast_pow(C8, 15)*fast_pow(r, 6) + 29059430400*C6*fast_pow(C8, 15)*fast_pow(b, 7)*fast_pow(r, 17) + 174356582400*C6*fast_pow(C8, 15)*fast_pow(b, 6)*fast_pow(r, 16) + 1046139494400*C6*fast_pow(C8, 15)*fast_pow(b, 5)*fast_pow(r, 15) + 5230697472000*C6*fast_pow(C8, 15)*fast_pow(b, 4)*fast_pow(r, 14) + 20922789888000*C6*fast_pow(C8, 15)*fast_pow(b, 3)*fast_pow(r, 13) + 62768369664000*C6*fast_pow(C8, 15)*fast_pow(b, 2)*fast_pow(r, 12) + 125536739328000*C6*fast_pow(C8, 15)*b*fast_pow(r, 11) - 125536739328000*C6*fast_pow(C8, 15)*fast_pow(r, 10)*std::exp(b*r) + 125536739328000*C6*fast_pow(C8, 15)*fast_pow(r, 10) + 518918400*fast_pow(C8, 16)*fast_pow(b, 9)*fast_pow(r, 17) + 4151347200*fast_pow(C8, 16)*fast_pow(b, 8)*fast_pow(r, 16) + 33210777600*fast_pow(C8, 16)*fast_pow(b, 7)*fast_pow(r, 15) + 232475443200*fast_pow(C8, 16)*fast_pow(b, 6)*fast_pow(r, 14) + 1394852659200*fast_pow(C8, 16)*fast_pow(b, 5)*fast_pow(r, 13) + 6974263296000*fast_pow(C8, 16)*fast_pow(b, 4)*fast_pow(r, 12) + 27897053184000*fast_pow(C8, 16)*fast_pow(b, 3)*fast_pow(r, 11) + 83691159552000*fast_pow(C8, 16)*fast_pow(b, 2)*fast_pow(r, 10) + 167382319104000*fast_pow(C8, 16)*b*fast_pow(r, 9) - 167382319104000*fast_pow(C8, 16)*fast_pow(r, 8)*std::exp(b*r) + 167382319104000*fast_pow(C8, 16)*fast_pow(r, 8))*std::exp(-b*r)/(fast_pow(C8, 15)*fast_pow(r, 17));
+
+        const double br = b * r;
+        const double exp_br = std::exp(-br);
+
+        // powers of 1/r
+        const double inv_r2 = 1.0 / (r * r);
+        const double inv_r4  = inv_r2 * inv_r2;
+        const double inv_r6  = inv_r4 * inv_r2;
+        const double inv_r8  = inv_r6 * inv_r2;
+        const double inv_r10 = inv_r8 * inv_r2;
+        const double inv_r12 = inv_r10 * inv_r2;
+        const double inv_r14 = inv_r12 * inv_r2;
+        const double inv_r16 = inv_r14 * inv_r2;
+        const double inv_r18 = inv_r16 * inv_r2;
+
+        // Unrolled series for Sum_{k=0}^n (br^k / k!)
+        double t1  = br;
+        double t2  = t1 * br / 2.0;
+        double t3  = t2 * br / 3.0;
+        double t4  = t3 * br / 4.0;
+        double t5  = t4 * br / 5.0;
+        double t6  = t5 * br / 6.0;
+        double t7  = t6 * br / 7.0;
+        double t8  = t7 * br / 8.0;
+        double t9  = t8 * br / 9.0;
+        double t10 = t9 * br / 10.0;
+        double t11 = t10 * br / 11.0;
+        double t12 = t11 * br / 12.0;
+        double t13 = t12 * br / 13.0;
+        double t14 = t13 * br / 14.0;
+        double t15 = t14 * br / 15.0;
+        double t16 = t15 * br / 16.0;
+
+        double S1  = 1.0 + t1;
+        double S2  = S1  + t2;
+        double S3  = S2  + t3;
+        double S4  = S3  + t4;
+        double S5  = S4  + t5;
+        double S6  = S5  + t6;
+        double S7  = S6  + t7;
+        double S8  = S7  + t8;
+        double S9  = S8  + t9;
+        double S10 = S9  + t10;
+        double S11 = S10 + t11;
+        double S12 = S11 + t12;
+        double S13 = S12 + t13;
+        double S14 = S13 + t14;
+        double S15 = S14 + t15;
+        double S16 = S15 + t16;
+
+        const double D6  = 1.0 - exp_br * S6;
+        const double D8  = 1.0 - exp_br * S8;
+        const double D10 = 1.0 - exp_br * S10;
+        const double D12 = 1.0 - exp_br * S12;
+        const double D14 = 1.0 - exp_br * S14;
+        const double D16 = 1.0 - exp_br * S16;
+
+        const double exp_main = std::exp(a1*r + a2*r*r + a_m1/r + b*r);
+
+        double F = A * exp_main * (a1 + 2.0*a2*r - a_m1/(r*r) + b);
+
+        F += C6  * (-6.0  * inv_r8 ) * D6;
+        F += C8  * (-8.0  * inv_r10) * D8;
+        F += C10 * (-10.0 * inv_r12) * D10;
+        F += C12 * (-12.0 * inv_r14) * D12;
+        F += C14 * (-14.0 * inv_r16) * D14;
+        F += C16 * (-16.0 * inv_r18) * D16;
+
+        const double Fmag = F;
 
         const double fx = Fmag * dx * inv_r;
         const double fy = Fmag * dy * inv_r;
         const double fz = Fmag * dz * inv_r;
 
-        std::array<double,3> F{fx, fy, fz};
-        p1.addF(F);
-        if (_newton3) {
-            p2.subF(F);
-        }
+        std::array<double,3> Fv{{fx, fy, fz}};
+        p1.addF(Fv);
+        if(_newton3) p2.subF(Fv);
     }
-
-    bool allowsNewton3() const { return true; }
-    bool usesNewton3() const { return _newton3; }
 
 private:
     double _A;

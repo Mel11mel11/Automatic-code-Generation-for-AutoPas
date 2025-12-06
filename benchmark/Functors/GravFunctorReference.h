@@ -22,7 +22,7 @@ explicit GravFunctorReference(double gravConst, bool newton3 = false)
         double r2 = arrayMath::dot(dr, dr);
         if (r2 < 1e-24) r2 = 1e-24;  // softening for numerical stability
         double r = std::sqrt(r2);
-        double invr3 = 1.0 / (r2 * r);
+        double invr3 = 1.0 / (r*r2);
 
         double m1 = p1.getMass();
         double m2 = p2.getMass();

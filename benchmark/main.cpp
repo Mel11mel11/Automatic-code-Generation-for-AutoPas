@@ -14,12 +14,32 @@
 #include "Functors/KryptonFunctorGenerated.h"
 #include "Functors/KryptonFunctorReference.h"
 #include "Functors/KryptonFunctorGenerated_Gen.h"
+#include "Functors/Soa/GravityFunctor_Gen_SoA.h"
+#include "Functors/Soa/LJFunctor_Gen_SoA.h"
+#include "Functors/Soa/MieFunctor_Gen_SoA.h"
+#include "Functors/Soa/KryptonFunctorGenerated_Gen_SoA.h"
+#include "Functors/KryptonFunctorGenerated_Gen2.h"
 #include <vector>
 #include <cmath>
 #include <random>
 #include <iostream>
 #include <iomanip>
 #include <string>
+
+
+struct ParticleSoA {
+    std::vector<double> x, y, z;
+    std::vector<double> fx, fy, fz;
+    std::vector<double> mass;         
+
+    std::size_t size() const { return x.size(); }
+
+    void resize(size_t N) {
+        x.resize(N); y.resize(N); z.resize(N);
+        fx.resize(N); fy.resize(N); fz.resize(N);
+        mass.resize(N);             
+    }
+};
 
 using ParticleType = Particle;
 
@@ -45,7 +65,11 @@ static std::array<double,3> sumAllTwoWays(const std::vector<Particle>& ps){
     return { (double)s_arr, (double)s_get, (double)maxAbs };
 }
 
-static double checksumFx(const std::vector<ParticleType>& ps){ double s=0; for(auto& p:ps) s+=p.getF()[0]; return s; }
+static double checksumFx(const std::vector<ParticleType>& ps)
+{   double s=0; 
+    for(auto& p:ps) 
+    s+=std::abs(p.getF()[0]);
+    return s; }
 
 template<class F>
  
@@ -56,6 +80,46 @@ static long runPairs(std::vector<ParticleType>& ps, F& functor){ // this func wa
         for (size_t j = i + 1; j < N; ++j)
             functor.AoSFunctor(ps[i], ps[j]);
     t.stop();
+    return t.getTotalTime();
+}
+static void loadAoSIntoSoA(const std::vector<ParticleType> &aos, ParticleSoA &soa) {
+    const size_t N = aos.size();
+    soa.resize(N);
+
+    for (size_t i = 0; i < N; ++i) {
+        auto r = aos[i].getR();
+
+        soa.x[i] = r[0];
+        soa.y[i] = r[1];
+        soa.z[i] = r[2];
+
+        soa.fx[i] = 0.0;
+        soa.fy[i] = 0.0;
+        soa.fz[i] = 0.0;
+
+        soa.mass[i] = aos[i].getMass(); 
+    }
+}
+
+
+static void extractSoAIntoAoS(const ParticleSoA &soa, std::vector<ParticleType> &aos) {
+    const size_t N = aos.size();
+    for (size_t i = 0; i < N; ++i) {
+        aos[i].setF({soa.fx[i], soa.fy[i], soa.fz[i]});
+    }
+}
+
+template<class F>
+static long runPairsSoA(std::vector<ParticleType>& ps, F& functor){
+    ParticleSoA soa;
+    soa.resize(ps.size());
+    loadAoSIntoSoA(ps, soa);
+
+    Timer t; t.start();
+    functor.SoAFunctor(soa);   
+    t.stop();
+
+    extractSoAIntoAoS(soa, ps);
     return t.getTotalTime();
 }
 
@@ -76,7 +140,15 @@ int main(int argc,char** argv){
     static_cast<int>(i),
     1.0   
 );
-//
+
+auto benchSoA = [&](const std::string& name, auto& functor){
+    zero_all(ps);
+    long t_ns = runPairsSoA(ps, functor);
+    double sum = checksumFx(ps);
+    std::cout << name << " (SoA)  N="<<N<<"  time="<<(t_ns/1e6)<<" ms  sumFx="<<sum << "\n";
+};
+
+
 auto grav_sanity = [](){
     Particle a({0.0,0.0,0.0},{0,0,0},{0,0,0}, 0, 1.0);
     Particle b({1.0,0.0,0.0},{0,0,0},{0,0,0}, 1, 1.0);
@@ -98,61 +170,50 @@ auto grav_sanity = [](){
     std::cout.flags(oldf); std::cout.precision(oldp);
 };
 
-// grav_sanity();  
-
-    auto bench = [&](const std::string& name, auto& functor){
-    zero_all(ps); // make zero all particles
+auto bench = [&](const std::string& name, auto& functor){
+    zero_all(ps); 
         zero_all(ps);
 
     long t_ns = runPairs(ps, functor);
     auto sums = sumAllTwoWays(ps); 
     double sum = checksumFx(ps);
     std::cout << name << "  N="<<N<<"  time="<<(t_ns/1e6)<<" ms  sumFx="<<sum << "\n";
+    auto benchSoA = [&](const std::string& name, auto& functor){
+    zero_all(ps);
+    long t_ns = runPairsSoA(ps, functor);
+    double sum = checksumFx(ps);
+    std::cout << name << " (SoA)  N="<<N<<"  time="<<(t_ns/1e6)<<" ms  sumFx="<<sum << "\n";
+};
+ 
     };
-
-    // auto sanity_one_pair = [&](){
-    // ParticleType a({0.1,0.2,0.3},{0,0,0},{0,0,0}, 0);
-    // ParticleType b({0.9,0.8,0.7},{0,0,0},{0,0,0}, 1);
-
-    // LJFunctorReference<ParticleType> ref(1.0, 1.0, /*newton3*/ true);
-   //  LJFunctorGenerated<ParticleType> gen(1.0, 1.0, /*newton3*/ true);
-
-    // a.setF(std::array<double,3>{0,0,0});
-    // b.setF(std::array<double,3>{0,0,0});
-    // ref.AoSFunctor(a,b);
-    //std::cerr<<"REF F1=("<<a.getF()[0]<<","<<a.getF()[1]<<","<<a.getF()[2]<<")  "
-            // <<"F2=("<<b.getF()[0]<<","<<b.getF()[1]<<","<<b.getF()[2]<<")\n";
-
-    // a.setF(std::array<double,3>{0,0,0});
-   // b.setF(std::array<double,3>{0,0,0});
-    //gen.AoSFunctor(a,b);
-    //std::cerr<<"GEN F1=("<<a.getF()[0]<<","<<a.getF()[1]<<","<<a.getF()[2]<<")  "
-            // <<"F2=("<<b.getF()[0]<<","<<b.getF()[1]<<","<<b.getF()[2]<<")\n";
-    //}; 
-
-
     
     const double sigma=1.0, epsilon=1.0;
     const int n=7, m=6;
     const double G=6.67430e-11;
-    //sanity_one_pair();
+
     if (mode=="lj" || mode=="all"){
-        LJFunctorReference<ParticleType> ref(sigma,epsilon, true);
-        LJFunctorGenerated<ParticleType> gen(sigma,epsilon, true);
-        LJFunctor_Gen<ParticleType> otolj(true, sigma, epsilon);
+        LJFunctorReference<ParticleType> ref(sigma,epsilon, false);
+        LJFunctorGenerated<ParticleType> gen(sigma,epsilon, false);
+        LJFunctor_Gen<ParticleType> otolj(sigma, epsilon,false);
+        LJFunctor_Gen_SoA<ParticleSoA> ljSoa(sigma, epsilon, false);
+        
+
 
         bench("LJ-REF ", ref);
         bench("LJ-GEN ", gen);
         bench("LJ-OTO ", otolj);
-        
+        benchSoA("LJ-SOA ", ljSoa);
     }
+
     if (mode == "mie" || mode == "all") {
-        MieFunctorGenerated<ParticleType> mieSafe(sigma, epsilon, n, m, true);
-        MieFunctorReference<ParticleType> mieRef(sigma, epsilon, n, m, true);
-        MieFunctor_Gen<ParticleType> mieOto(sigma, epsilon, n, m, true);
+        MieFunctorGenerated<ParticleType> mieSafe(sigma, epsilon, n, m, false);
+        MieFunctorReference<ParticleType> mieRef(sigma, epsilon, n, m, false);
+        MieFunctor_Gen<ParticleType> mieOto(sigma, epsilon, n, m, false);
+        MieFunctor_Gen_SoA<ParticleSoA> mieSoa(sigma, epsilon, n, m, false);
         bench("MIE-SAFE", mieSafe);
         bench("MIE-REF ", mieRef);
         bench("MIE-Oto ", mieOto);
+        benchSoA("MIE-SOA ", mieSoa);
     }
 
     if(mode=="krypton"|| mode=="all"){
@@ -164,15 +225,23 @@ auto grav_sanity = [](){
         1.213e4, 2.821, -0.748, 0.972, 13.29,
         64.3,  307.2,  1096.0, false);
 
-    KryptonFunctorGenerated_Gen<ParticleType> krp(
+    KryptonFunctorGenerated_Gen<ParticleType> krp_oto(
         1.213e4, 2.821, -0.748, 0.972, 13.29,
         64.3,  307.2,  1096.0,
         false);  // sadece bool 
+    KryptonFunctorGenerated_Gen_SoA<ParticleSoA> krp_soa(
+        1.213e4, 2.821, -0.748, 0.972, 13.29,
+        64.3,  307.2,  1096.0, false);
+    KryptonFunctorGenerated_Gen2<ParticleType> kry_gen2(
+        1.213e4, 2.821, -0.748, 0.972, 13.29,
+        64.3,  307.2,  1096.0,
+        false);  //    
 
      bench("KRY-REF", kry_gen);
      bench("KRY-GEN", kryp_ref);
-     bench("KRY-AUTO", krp);
-
+     bench("KRY-AUTO", krp_oto);
+     bench("KRY-GEN2", kry_gen2);
+     benchSoA("KRY-SOA", krp_soa);
 
     }
 
@@ -180,9 +249,12 @@ auto grav_sanity = [](){
         GravFunctorGenerated<ParticleType> gGen(G,true);
         GravFunctorReference<ParticleType> gRef(G,true);
         GravityFunctor_Gen<ParticleType> go(G,true);
+        GravityFunctor_Gen_SoA<ParticleSoA> gravSoa(G,true);
+
         bench("GRAV-GEN", gGen);
         bench("GRAV-REF", gRef);
         bench("GRAV-OTO", go);
+        benchSoA("GRAV-SOA", gravSoa);
     }
     return 0;
 }
