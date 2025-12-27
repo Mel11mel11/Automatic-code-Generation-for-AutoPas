@@ -5,20 +5,24 @@
 #include "Functors/LJFunctorReference.h"
 #include "Functors/LJFunctorGenerated.h"
 #include "Functors/LJFunctor_Gen.h"
+#include "Functors/Soa/LJFunctor_Ref_SoA.h"
+#include "Functors/Soa/LJFunctor_Gen_SoA.h"
 #include "Functors/MieFunctorGenerated.h"
 #include "Functors/MieFunctorReference.h"
 #include "Functors/MieFunctor_Gen.h"
+#include "Functors/Soa/MieFunctor_Ref_SoA.h"
 #include "Functors/GravFunctorGenerated.h"
 #include "Functors/GravFunctorReference.h"
 #include "Functors/GravityFunctor_Gen.h"
+#include "Functors/Soa/GravityFunctor_Ref_SoA.h"
 #include "Functors/KryptonFunctorGenerated.h"
 #include "Functors/KryptonFunctorReference.h"
 #include "Functors/KryptonFunctorGenerated_Gen.h"
 #include "Functors/Soa/GravityFunctor_Gen_SoA.h"
-#include "Functors/Soa/LJFunctor_Gen_SoA.h"
 #include "Functors/Soa/MieFunctor_Gen_SoA.h"
 #include "Functors/Soa/KryptonFunctorGenerated_Gen_SoA.h"
 #include "Functors/KryptonFunctorGenerated_Gen2.h"
+#include "Functors/Soa/KryptonFunctor_Ref_SoA.h"
 #include <vector>
 #include <cmath>
 #include <random>
@@ -141,7 +145,7 @@ int main(int argc,char** argv){
     1.0   
 );
 
-auto benchSoA = [&](const std::string& name, auto& functor){
+[[maybe_unused]] auto benchSoA = [&](const std::string& name, auto& functor){
     zero_all(ps);
     long t_ns = runPairsSoA(ps, functor);
     double sum = checksumFx(ps);
@@ -170,7 +174,7 @@ auto grav_sanity = [](){
     std::cout.flags(oldf); std::cout.precision(oldp);
 };
 
-auto bench = [&](const std::string& name, auto& functor){
+[[maybe_unused]] auto bench = [&](const std::string& name, auto& functor){
     zero_all(ps); 
         zero_all(ps);
 
@@ -196,13 +200,13 @@ auto bench = [&](const std::string& name, auto& functor){
         LJFunctorGenerated<ParticleType> gen(sigma,epsilon, false);
         LJFunctor_Gen<ParticleType> otolj(sigma, epsilon,false);
         LJFunctor_Gen_SoA<ParticleSoA> ljSoa(sigma, epsilon, false);
-        
-
+        LJFunctor_Ref_SoA<ParticleSoA> ljRefSoa(sigma, epsilon, false);
 
         bench("LJ-REF ", ref);
         bench("LJ-GEN ", gen);
         bench("LJ-OTO ", otolj);
-        benchSoA("LJ-SOA ", ljSoa);
+        benchSoA("LJ-GEN-SOA ", ljSoa);
+        benchSoA("LJ-REF-SOA ", ljRefSoa);
     }
 
     if (mode == "mie" || mode == "all") {
@@ -210,10 +214,14 @@ auto bench = [&](const std::string& name, auto& functor){
         MieFunctorReference<ParticleType> mieRef(sigma, epsilon, n, m, false);
         MieFunctor_Gen<ParticleType> mieOto(sigma, epsilon, n, m, false);
         MieFunctor_Gen_SoA<ParticleSoA> mieSoa(sigma, epsilon, n, m, false);
+        MieFunctor_Ref_SoA<ParticleSoA> mieRefSoa(sigma, epsilon, n, m, false);
+
         bench("MIE-SAFE", mieSafe);
         bench("MIE-REF ", mieRef);
         bench("MIE-Oto ", mieOto);
         benchSoA("MIE-SOA ", mieSoa);
+        benchSoA("MIE-REF-SOA ", mieRefSoa);
+
     }
 
     if(mode=="krypton"|| mode=="all"){
@@ -236,12 +244,16 @@ auto bench = [&](const std::string& name, auto& functor){
         1.213e4, 2.821, -0.748, 0.972, 13.29,
         64.3,  307.2,  1096.0,
         false);  //    
+    KryptonFunctor_Ref_SoA<ParticleSoA> kry_ref_soa(
+        1.213e4, 2.821, -0.748, 0.972, 13.29,
+        64.3,  307.2,  1096.0, false);
 
      bench("KRY-REF", kry_gen);
      bench("KRY-GEN", kryp_ref);
      bench("KRY-AUTO", krp_oto);
      bench("KRY-GEN2", kry_gen2);
      benchSoA("KRY-SOA", krp_soa);
+     benchSoA("KRY-REF-SOA", kry_ref_soa);
 
     }
 
@@ -250,11 +262,13 @@ auto bench = [&](const std::string& name, auto& functor){
         GravFunctorReference<ParticleType> gRef(G,true);
         GravityFunctor_Gen<ParticleType> go(G,true);
         GravityFunctor_Gen_SoA<ParticleSoA> gravSoa(G,true);
+        GravityFunctor_Ref_SoA<ParticleSoA> gravRefSoa(G,true);
 
         bench("GRAV-GEN", gGen);
         bench("GRAV-REF", gRef);
         bench("GRAV-OTO", go);
         benchSoA("GRAV-SOA", gravSoa);
+        benchSoA("GRAV-REF-SOA", gravRefSoa);
     }
     return 0;
 }
