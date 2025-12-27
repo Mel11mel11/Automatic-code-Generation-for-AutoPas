@@ -7,13 +7,11 @@
 #include "FastPow.hpp"
 
 template <class Particle_T>
-class MieFunctor_Gen : public Functor<Particle_T> {
+class LJFunctor_Gen : public Functor<Particle_T> {
 public:
-    explicit MieFunctor_Gen(double sigma, double epsilon, double n, double m, bool newton3 = true)
-        : _sigma(sigma), _epsilon(epsilon), _n(n), _m(m), _newton3(newton3)
+    explicit LJFunctor_Gen(double sigma, double epsilon, bool newton3 = true)
+        : _sigma(sigma), _epsilon(epsilon), _newton3(newton3)
     {
-
-        _C = (_n / (_n - _m)) * std::pow(_n / _m, _m / (_n - _m));
 
 
     }
@@ -35,16 +33,13 @@ public:
         // Parameter aliases
         const double sigma = _sigma;
         const double epsilon = _epsilon;
-        const double n = _n;
-        const double m = _m;
-        const double C = _C;
-
-
 
         const double p1m = p1.getMass();
         const double p2m = p2.getMass();
 
-        const double Fmag = C*epsilon*(-m*std::pow(sigma/r, m) + n*std::pow(sigma/r, n))/r;
+        const double x0 = fast_pow(sigma, 6);
+
+        const double Fmag = 24*epsilon*fast_pow(inv_r, 7)*x0*(2*fast_pow(inv_r, 6)*x0 - 1);
 
         const double fx = Fmag * dx * inv_r;
         const double fy = Fmag * dy * inv_r;
@@ -52,9 +47,7 @@ public:
 
         std::array<double,3> F{fx, fy, fz};
         p1.addF(F);
-        if (_newton3) {
-            p2.subF(F);
-        }
+        if (_newton3) p2.subF(F);
     }
 
     bool allowsNewton3() const { return true; }
@@ -63,8 +56,5 @@ public:
 private:
     double _sigma;
     double _epsilon;
-    double _n;
-    double _m;
-    double _C;
     bool _newton3;
 };

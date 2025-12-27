@@ -5,14 +5,13 @@ name: Test
 expression: "r**2"
 parameters: {}
 output: {classname: TestFunctor_Gen, filename: generated_Test.hpp}
-options: {newton3: true}
+options: {newton3: true, soa: true}     
 ---
 name: LennardJones
 expression: "4*epsilon*((sigma/r)**12 - (sigma/r)**6)"
 parameters: {sigma: 1.0, epsilon: 1.0}
 output: {classname: LJFunctor_Gen, filename: generated_LJ.hpp}
-options: {newton3: true}
-
+options: {newton3: true, soa: true}     
 ---
 name: Gravity
 expression: "-G*p1m*p2m / r"
@@ -23,6 +22,7 @@ output:
   filename: generated_Gravity.hpp
 options:
   newton3: true
+  soa: true      
 
 ---
 name: Mie_Potential
@@ -37,6 +37,7 @@ output:
   filename: generated_Mie.hpp
 options:
   newton3: true
+  soa: true      
 
 ---
 name: Krypton_TangToennies
@@ -66,6 +67,7 @@ output:
 
 options:
   newton3: true
+  soa: true      
 
 
 

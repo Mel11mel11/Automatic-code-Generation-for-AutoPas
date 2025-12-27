@@ -33,10 +33,10 @@ public:
         // Parameter aliases
 
 
-
-
         const double p1m = p1.getMass();
         const double p2m = p2.getMass();
+
+
 
         const double Fmag = -2*r;
 
@@ -46,9 +46,7 @@ public:
 
         std::array<double,3> F{fx, fy, fz};
         p1.addF(F);
-        if (_newton3) {
-            p2.subF(F);
-        }
+        if (_newton3) p2.subF(F);
     }
 
     bool allowsNewton3() const { return true; }
