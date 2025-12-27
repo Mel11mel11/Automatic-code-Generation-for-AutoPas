@@ -4,7 +4,7 @@
 #include <cmath>
 #include <algorithm>
 
-#include "../Particle.h"
+#include "Particle.h"
 
 // Functors
 #include "../Functors/LJFunctorReference.h"
@@ -19,9 +19,7 @@
 #include "../Functors/KryptonFunctorReference.h"
 #include "../Functors/KryptonFunctorGenerated.h"
 
-// -----------------------------------------
-// Helper: grid creation
-// -----------------------------------------
+
 std::vector<Particle> makeGrid(int N, double spacing) {
     std::vector<Particle> ps;
     ps.reserve(N*N*N);
