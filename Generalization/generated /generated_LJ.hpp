@@ -7,10 +7,10 @@
 #include "FastPow.hpp"
 
 template <class Particle_T>
-class GravityFunctor_Gen : public Functor<Particle_T> {
+class LJFunctor_Gen : public Functor<Particle_T> {
 public:
-    explicit GravityFunctor_Gen(double G, bool newton3 = true)
-        : _G(G), _newton3(newton3)
+    explicit LJFunctor_Gen(double sigma, double epsilon, bool newton3 = true)
+        : _sigma(sigma), _epsilon(epsilon), _newton3(newton3)
     {
 
 
@@ -31,14 +31,15 @@ public:
         const double inv_r = 1.0 / r;
 
         // Parameter aliases
-        const double G = _G;
-
-
+        const double sigma = _sigma;
+        const double epsilon = _epsilon;
 
         const double p1m = p1.getMass();
         const double p2m = p2.getMass();
 
-        const double Fmag = -G*p1m*p2m/fast_pow(r, 2);
+        const double x0 = fast_pow(sigma, 6);
+
+        const double Fmag = -24*epsilon*fast_pow(inv_r, 13)*x0*(fast_pow(r, 6) - 2*x0);
 
         const double fx = Fmag * dx * inv_r;
         const double fy = Fmag * dy * inv_r;
@@ -46,15 +47,14 @@ public:
 
         std::array<double,3> F{fx, fy, fz};
         p1.addF(F);
-        if (_newton3) {
-            p2.subF(F);
-        }
+        if (_newton3) p2.subF(F);
     }
 
     bool allowsNewton3() const { return true; }
     bool usesNewton3() const { return _newton3; }
 
 private:
-    double _G;
+    double _sigma;
+    double _epsilon;
     bool _newton3;
 };
