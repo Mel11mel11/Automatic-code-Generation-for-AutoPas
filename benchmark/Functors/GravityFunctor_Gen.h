@@ -9,9 +9,10 @@
 template <class Particle_T>
 class GravityFunctor_Gen : public Functor<Particle_T> {
 public:
-    explicit GravityFunctor_Gen(double G, bool newton3 = true)
-        : _G(G), _newton3(newton3)
+    explicit GravityFunctor_Gen(double G, bool newton3 = true, double cutoff = 0.0)
+        : _G(G), _newton3(newton3), _cutoff(cutoff)
     {
+
 
     }
 
@@ -25,7 +26,9 @@ public:
         constexpr double EPS = 1e-24;
         double r2 = dx*dx + dy*dy + dz*dz;
         if (r2 < EPS) r2 = EPS;
-
+        const double cutoff = _cutoff;
+        const double cutoff2 = cutoff * cutoff;
+        if (cutoff > 0.0 && r2 > cutoff2) return;
         const double r = std::sqrt(r2);
         const double inv_r = 1.0 / r;
 
@@ -35,10 +38,8 @@ public:
         const double p1m = p1.getMass();
         const double p2m = p2.getMass();
 
-        // Level-2 optimized temporaries
 
 
-        // Final force magnitude
         const double Fmag = -G*fast_pow(inv_r, 2)*p1m*p2m;
 
         const double fx = Fmag * dx * inv_r;
@@ -47,9 +48,7 @@ public:
 
         std::array<double,3> F{fx, fy, fz};
         p1.addF(F);
-        if (_newton3) {
-            p2.subF(F);
-        }
+        if (_newton3) p2.subF(F);
     }
 
     bool allowsNewton3() const { return true; }
@@ -58,4 +57,5 @@ public:
 private:
     double _G;
     bool _newton3;
+    double _cutoff;
 };

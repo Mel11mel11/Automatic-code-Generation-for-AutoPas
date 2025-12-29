@@ -190,17 +190,18 @@ auto grav_sanity = [](){
 };
  
     };
-    
+
+    const double cutoff = 2.5;
     const double sigma=1.0, epsilon=1.0;
     const int n=7, m=6;
     const double G=6.67430e-11;
 
     if (mode=="lj" || mode=="all"){
-        LJFunctorReference<ParticleType> ref(sigma,epsilon, false);
-        LJFunctorGenerated<ParticleType> gen(sigma,epsilon, false);
-        LJFunctor_Gen<ParticleType> otolj(sigma, epsilon,false);
-        LJFunctor_Gen_SoA<ParticleSoA> ljSoa(sigma, epsilon, false);
-        LJFunctor_Ref_SoA<ParticleSoA> ljRefSoa(sigma, epsilon, false);
+        LJFunctorReference<ParticleType> ref(sigma,epsilon, false,cutoff);
+        LJFunctorGenerated<ParticleType> gen(sigma,epsilon, false,cutoff);
+        LJFunctor_Gen<ParticleType> otolj(sigma, epsilon,false,cutoff);
+        LJFunctor_Gen_SoA<ParticleSoA> ljSoa(sigma, epsilon, false,cutoff);
+        LJFunctor_Ref_SoA<ParticleSoA> ljRefSoa(sigma, epsilon, false,cutoff);
 
         bench("LJ-REF ", ref);
         bench("LJ-GEN ", gen);
@@ -208,13 +209,13 @@ auto grav_sanity = [](){
         benchSoA("LJ-GEN-SOA ", ljSoa);
         benchSoA("LJ-REF-SOA ", ljRefSoa);
     }
-
+    printf("---------------------------------------\n");
     if (mode == "mie" || mode == "all") {
-        MieFunctorGenerated<ParticleType> mieSafe(sigma, epsilon, n, m, false);
-        MieFunctorReference<ParticleType> mieRef(sigma, epsilon, n, m, false);
-        MieFunctor_Gen<ParticleType> mieOto(sigma, epsilon, n, m, false);
-        MieFunctor_Gen_SoA<ParticleSoA> mieSoa(sigma, epsilon, n, m, false);
-        MieFunctor_Ref_SoA<ParticleSoA> mieRefSoa(sigma, epsilon, n, m, false);
+        MieFunctorGenerated<ParticleType> mieSafe(sigma, epsilon, n, m, false, cutoff);
+        MieFunctorReference<ParticleType> mieRef(sigma, epsilon, n, m, false, cutoff);
+        MieFunctor_Gen<ParticleType> mieOto(sigma, epsilon, n, m, false, cutoff);
+        MieFunctor_Gen_SoA<ParticleSoA> mieSoa(sigma, epsilon, n, m, false, cutoff);
+        MieFunctor_Ref_SoA<ParticleSoA> mieRefSoa(sigma, epsilon, n, m, false, cutoff);
 
         bench("MIE-SAFE", mieSafe);
         bench("MIE-REF ", mieRef);
@@ -223,30 +224,30 @@ auto grav_sanity = [](){
         benchSoA("MIE-REF-SOA ", mieRefSoa);
 
     }
-
+    printf("---------------------------------------\n");
     if(mode=="krypton"|| mode=="all"){
         
     KryptonFunctorReference<ParticleType> kry_gen(1.213e4, 2.821, -0.748, 0.972, 13.29,
         64.3,  307.2,  1096.0,
-        false);
+        false, cutoff);
     KryptonFunctorGenerated<ParticleType> kryp_ref(
         1.213e4, 2.821, -0.748, 0.972, 13.29,
-        64.3,  307.2,  1096.0, false);
+        64.3,  307.2,  1096.0, false, cutoff);
 
     KryptonFunctorGenerated_Gen<ParticleType> krp_oto(
         1.213e4, 2.821, -0.748, 0.972, 13.29,
         64.3,  307.2,  1096.0,
-        false);  // sadece bool 
+        false, cutoff);  
     KryptonFunctorGenerated_Gen_SoA<ParticleSoA> krp_soa(
         1.213e4, 2.821, -0.748, 0.972, 13.29,
-        64.3,  307.2,  1096.0, false);
+        64.3,  307.2,  1096.0, false, cutoff);
     KryptonFunctorGenerated_Gen2<ParticleType> kry_gen2(
         1.213e4, 2.821, -0.748, 0.972, 13.29,
         64.3,  307.2,  1096.0,
-        false);  //    
+        false, cutoff);     
     KryptonFunctor_Ref_SoA<ParticleSoA> kry_ref_soa(
         1.213e4, 2.821, -0.748, 0.972, 13.29,
-        64.3,  307.2,  1096.0, false);
+        64.3,  307.2,  1096.0, false, cutoff);
 
      bench("KRY-REF", kry_gen);
      bench("KRY-GEN", kryp_ref);
@@ -256,13 +257,13 @@ auto grav_sanity = [](){
      benchSoA("KRY-REF-SOA", kry_ref_soa);
 
     }
-
+    printf("---------------------------------------\n");
     if (mode=="grav" || mode=="all"){
-        GravFunctorGenerated<ParticleType> gGen(G,true);
-        GravFunctorReference<ParticleType> gRef(G,true);
-        GravityFunctor_Gen<ParticleType> go(G,true);
-        GravityFunctor_Gen_SoA<ParticleSoA> gravSoa(G,true);
-        GravityFunctor_Ref_SoA<ParticleSoA> gravRefSoa(G,true);
+        GravFunctorGenerated<ParticleType> gGen(G,true, cutoff);
+        GravFunctorReference<ParticleType> gRef(G,true, cutoff);
+        GravityFunctor_Gen<ParticleType> go(G,true, cutoff);
+        GravityFunctor_Gen_SoA<ParticleSoA> gravSoa(G,true, cutoff);
+        GravityFunctor_Ref_SoA<ParticleSoA> gravRefSoa(G,true, cutoff);
 
         bench("GRAV-GEN", gGen);
         bench("GRAV-REF", gRef);

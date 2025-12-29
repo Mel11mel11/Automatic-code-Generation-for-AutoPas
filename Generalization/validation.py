@@ -7,6 +7,13 @@ def validate_one(data: dict) -> dict:
     filename = out.get("filename")
     options = data.get("options", {}) or {}
     params = data.get("parameters", {}) or {}
+    cutoff = options.get("cutoff", None)
+    cutoff = options.get("cutoff", None)
+
+    if cutoff is not None:
+        cutoff = float(cutoff)
+        if cutoff <= 0.0:
+            raise ValueError("cutoff must be positive if specified")
 
     if not all([name, expr, classname, filename]):
         raise ValueError("Missing required fields")
@@ -22,4 +29,5 @@ def validate_one(data: dict) -> dict:
         "eps_guard": float(options.get("avoid_r2_zero", 1e-24)),
         "parameters": params,
         "generate_soa": generate_soa_flag,
+        "cutoff": cutoff,
     }

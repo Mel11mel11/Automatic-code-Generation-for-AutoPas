@@ -1,164 +1,43 @@
 import os
 import sys
-import yaml_loader as yl 
 import sympy as sp
-import textwrap
+import yaml_loader as yl
 import validation as valid
 from replace import fix_exp
 from sympy.printing.cxx import CXX11CodePrinter
 from mako.template import Template
 from mako.lookup import TemplateLookup
- # for generate_soa
-import emit_header as em  # for emit_header
+import emit_header as em
+# for mako look at templates
 lookup = TemplateLookup(directories=["templates"])
 
-def generate_soa(cfg: dict, out_dir: str):
 
-    classname = cfg["classname"]
-    params = cfg["parameters"]
-    param_names = list(params.keys())
+class TempAllocator:
+    def __init__(self):
+        self.idx = 0
 
-    # Force expression
-    add_dispersion = all(k in param_names for k in ["C6", "C8", "C10"])
+    def new(self):
+        name = f"x{self.idx}"
+        self.idx += 1
+        return name
 
-    temps_code, force_expr = calculate_force(cfg["expr_str"], param_names, add_dispersion)
-
-    # Load templates
-    header_tpl = lookup.get_template("soa_functor.h.mako")
-    uses_mass = ("p1m" in cfg["expr_str"]) or ("p2m" in cfg["expr_str"])
+tmp_alloc = TempAllocator()
 
 
-    # Context for templates
-    ctx = {
-        "classname": classname,
-        "parameters": params,
-        "temps_code": temps_code,
-        "force_expr": force_expr,
-        "newton3_default": cfg["newton3_default"],
-        "eps_guard": cfg["eps_guard"],
-        "uses_mass": uses_mass, 
-    }
-
-    # Render
-    header_code = header_tpl.render(**ctx)
-    
-
-    # Output
-    hpath = os.path.join(out_dir, f"{classname}_SoA.h")
-   
-
-    with open(hpath, "w") as f:
-        f.write(header_code)
-    
-
-    print("[SoA] Generated:", hpath)
-
-#class FastPowPrinter(CXX11CodePrinter):
-   # def _print_Pow(self, expr):
-       # base, exp = expr.as_base_exp()
-        #if exp.is_Integer and 0 <= exp <= 20:
-           # return f"fast_pow({self._print(base)}, {int(exp)})"
-        #return f"std::pow({self._print(base)}, {self._print(exp)})"
-
-def eliminate_r(expr):
-    r = sp.Symbol("r", positive=True)
-    inv_r = sp.Symbol("inv_r", positive=True)
-
-    # r  -> 1/inv_r
-    expr = expr.subs(r, 1/inv_r)
-
-    # sonra sadeleştir (çok önemli)
-    expr = sp.simplify(expr)
-
-    return expr
-
-def eliminate_all_r(expr):
-    r = sp.Symbol("r", positive=True)
-    inv_r = sp.Symbol("inv_r", positive=True)
-
-    def repl(node):
-        if isinstance(node, sp.Pow):
-            base, exp = node.as_base_exp()
-            if base.is_Symbol and base.name == "r" and exp.is_integer:
-                n = int(exp)
-                if n > 0:
-                    return 1 / (inv_r ** n)
-                else:
-                    return inv_r ** (-n)
-        return node
-
-    expr = expr.replace(lambda x: isinstance(x, sp.Pow), repl)
-    expr = expr.subs(r, 1/inv_r)
-    return sp.simplify(expr)
 
 class FastPowPrinter(CXX11CodePrinter):
     def _print_Pow(self, expr):
         base, exp = expr.as_base_exp()
-
-        # integer exponent
-        if exp.is_Integer:
-            e = int(exp)
-
-            # small positive integers -> fast_pow
-            if 0 <= e <= 20:
-                return f"fast_pow({self._print(base)}, {e})"
-
-            # negative integer exponent -> 1 / fast_pow(base, -e)  (fast_pow only needs positive)
-            if -20 <= e < 0:
-                return f"(1.0/fast_pow({self._print(base)}, {-e}))"
-
-        # fallback
-        return f"std::pow({self._print(base)}, {self._print(exp)})"
-
-    def _print_Pow(self, expr):
-        base, exp = expr.as_base_exp()
-        if exp.is_Integer and 0 <= int(exp) <= 20:
+        if exp.is_Integer and -20 <= int(exp) <= 20:
             return f"fast_pow({self._print(base)}, {int(exp)})"
         return f"std::pow({self._print(base)}, {self._print(exp)})"
+
+
 _fastpow_printer = FastPowPrinter()
 
 def ccode_fastpow(e):
     return _fastpow_printer.doprint(e)
 
-def optimize_level2(expr):
-
-    expr = sp.simplify(expr)
-
-    r = sp.Symbol("r", positive=True)
-    inv_r = sp.Symbol("inv_r", positive=True)
-
-    # ----- 1/r^n → inv_r^n -----
-    def conv(node):
-        if isinstance(node, sp.Pow):
-            base, exp = node.as_base_exp()
-            if base == r and exp.is_integer and exp < 0:
-                return inv_r ** int(-exp)
-        return node
-
-    expr = expr.replace(lambda x: isinstance(x, sp.Pow), conv)
-    expr = sp.simplify(expr)
-
-    # ----- CSE -----
-    repl, exprs = sp.cse(expr, optimizations="basic")
-    reduced = exprs[0]
-
-    # ----- exp(...) factoring -----
-    exp_terms = [t for t in reduced.atoms(sp.exp)]
-    exp_map = {}
-    for i, t in enumerate(exp_terms):
-        sym = sp.Symbol(f"exp_tmp_{i}")
-        exp_map[t] = sym
-
-    if exp_map:
-        reduced = reduced.xreplace(exp_map)
-
-    return repl, reduced, exp_map
-def factor_inv_r(expr):
-    inv_r = sp.Symbol("inv_r", positive=True)
-
-    expr = expr.replace(inv_r**-2, 1/(inv_r*inv_r))
-    expr = expr.replace(inv_r**-6, 1/(inv_r**6))
-    return sp.simplify(expr)
 
 def compute_dispersion_coeffs_sympy():
     C6, C8, C10 = sp.symbols("C6 C8 C10")
@@ -167,65 +46,91 @@ def compute_dispersion_coeffs_sympy():
     C16 = C10 * (C14 / C12) ** 3
     return C12, C14, C16
 
-
 def calculate_force(expr_str, param_names, add_dispersion):
     r = sp.Symbol("r", positive=True)
-    sym_locals = {"r": r}
+    inv_r = sp.Symbol("inv_r", positive=True)
 
-    # parameters
+    sym_locals = {
+        "r": r,
+        "inv_r": inv_r,
+    }
+
     for p in param_names:
         sym_locals[p] = sp.Symbol(p)
 
-    # p1m / p2m
     sym_locals["p1m"] = sp.Symbol("p1m")
     sym_locals["p2m"] = sp.Symbol("p2m")
 
-    # C12-C16 if required
     if add_dispersion:
         C12, C14, C16 = compute_dispersion_coeffs_sympy()
         sym_locals["C12"] = C12
         sym_locals["C14"] = C14
         sym_locals["C16"] = C16
 
-    # Build U, compute F = -dU/dr
     U = sp.sympify(expr_str, locals=sym_locals)
     F = -sp.diff(U, r)
+    F = eliminate_r(F)
 
-    repl, reduced, exp_map = optimize_level2(F)
+    F = F.doit()   # ⬅️ KRİTİK SATIR (k HATASINI BİTİRİR)
 
-    #repl, reduced, exp_map = optimize_level2(F)
-    reduced = eliminate_all_r(reduced)
-    # reduced = eliminate_r(reduced)
-    repl = [(s, eliminate_all_r(rhs)) for (s, rhs) in repl]
-    reduced = eliminate_all_r(reduced)
+    repl, exprs = sp.cse(F, optimizations="basic")
+    reduced = exprs[0]
 
-    # (opsiyonel ama iyi) tekrar CSE uygula
-    repl2, exprs2 = sp.cse(reduced, optimizations="basic")
-    reduced = exprs2[0]
-    repl = list(repl) + list(repl2)
-    temp_lines = []
-    for symb, rhs in repl:
-        temp_lines.append(
-            f"const double {symb} = {fix_exp(ccode_fastpow(rhs))};"
-        )
 
-    # exp tmp’s
-    exp_lines = []
-    for t, sym in exp_map.items():
-        arg = t.args[0]
-        exp_lines.append(
-            f"const double {sym} = std::exp({fix_exp(ccode_fastpow(arg))});"
-        )
+    temp_lines = [
+        f"const double {s} = {fix_exp(ccode_fastpow(rhs))};"
+        for s, rhs in repl
+    ]
 
-    temps_code = (
-        "\n        ".join(temp_lines + exp_lines)
-        if (temp_lines or exp_lines)
-        else ""
-    )
-
+    temps_code = "\n        ".join(temp_lines)
     force_expr = fix_exp(ccode_fastpow(reduced))
 
     return temps_code, force_expr
+
+def eliminate_r(expr):
+    r = sp.Symbol("r", positive=True)
+    inv_r = sp.Symbol("inv_r", positive=True)
+    return sp.simplify(expr.subs(r, 1 / inv_r))
+
+
+def generate_soa(cfg: dict, out_dir: str):
+    #  for soa.h per potential the parameters and potential name
+    classname = cfg["classname"]
+    params = cfg["parameters"]
+    param_names = list(params.keys())
+    # handling cutoff
+    cutoff = cfg.get("cutoff")
+    cutoff_enabled = cutoff is not None
+    cutoff_value = float(cutoff) if cutoff_enabled else 0.0
+    # check for dispersion for Krypton
+    add_dispersion = all(k in param_names for k in ["C6", "C8", "C10"])
+    # temporary code extraction and force expression
+    temps_code, force_expr = calculate_force(
+        cfg["expr_str"], param_names, add_dispersion
+    )
+    #
+    header_tpl = lookup.get_template("soa_functor.h.mako")
+    uses_mass = ("p1m" in cfg["expr_str"]) or ("p2m" in cfg["expr_str"])
+
+    ctx = {
+        "classname": classname,
+        "parameters": params,
+        "temps_code": temps_code,
+        "force_expr": force_expr,
+        "newton3_default": cfg["newton3_default"],
+        "eps_guard": cfg["eps_guard"],
+        "uses_mass": uses_mass,
+        "cutoff": cutoff_value,
+        "cutoff_enabled": cutoff_enabled,
+    }
+
+    header_code = header_tpl.render(**ctx)
+
+    hpath = os.path.join(out_dir, f"{classname}_SoA.h")
+    with open(hpath, "w") as f:
+        f.write(header_code)
+
+    print("[SoA] Generated:", hpath)
 
 def main():
     if len(sys.argv) < 3:
@@ -233,50 +138,39 @@ def main():
         return
 
     yaml_path = sys.argv[1]
-    out_dir = sys.argv[2] # output in the second argument
+    out_dir = sys.argv[2]
     os.makedirs(out_dir, exist_ok=True)
 
     raw_docs = yl.load_yaml(yaml_path)
-
     cfgs = []
-    
+
     for doc in raw_docs:
+        if not doc:
+            continue
+        if isinstance(doc, dict) and "potentials" in doc:
+            for p in doc["potentials"]:
+                cfgs.append(valid.validate_one(p))
+        else:
             cfgs.append(valid.validate_one(doc))
-   
-
-        
-    for doc in raw_docs:
-            if not doc:
-                continue
-
-    if isinstance(doc, dict) and "potentials" in doc:
-        for p in doc["potentials"]:
-            cfgs.append(valid.validate_one(p))
-    else:
-        cfgs.append(valid.validate_one(doc))
-
-
 
     for cfg in cfgs:
-        classname = cfg["classname"] 
+        classname = cfg["classname"]
         params = cfg["parameters"]
         param_names = list(params.keys())
 
-       
         add_dispersion = all(k in param_names for k in ["C6", "C8", "C10"])
 
- 
         temps, force = calculate_force(
-            cfg["expr_str"],        
+            cfg["expr_str"],
             param_names,
-            add_dispersion
-            )
+            add_dispersion,
+        )
 
         cpp = em.emit_header(
             classname,
             temps,
             force,
-            cfg["newton3_default"],   # ✔ doğru
+            cfg["newton3_default"],
             cfg["eps_guard"],
             param_names,
             add_dispersion,
@@ -286,12 +180,10 @@ def main():
         with open(out_path, "w") as f:
             f.write(cpp)
 
-    
-        if cfg["generate_soa"]:
+        if cfg.get("generate_soa", False):
             generate_soa(cfg, out_dir)
 
         print("[LEVEL-2] Generated:", cfg["filename"])
-
 
 if __name__ == "__main__":
     main()

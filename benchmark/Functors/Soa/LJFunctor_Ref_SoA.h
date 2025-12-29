@@ -1,6 +1,7 @@
 #pragma once
 #include "../Particle.h"
 #include <cstddef>
+#include <algorithm> // std::max
 
 template <class SoAView_T>
 class LJFunctor_Ref_SoA {
@@ -10,11 +11,13 @@ public:
     explicit LJFunctor_Ref_SoA(
         double sigma,
         double epsilon,
-        bool newton3 = true
+        bool newton3 = true,
+        double cutoff = 0.0
     )
         : _newton3(newton3)
         , _sigma2(sigma * sigma)
         , _epsilon24(24.0 * epsilon)
+        , _cutoff(cutoff)
     {}
 
     void SoAFunctor(SoAView &soa) {
@@ -28,6 +31,7 @@ public:
         double *fz = soa.fz.data();
 
         const std::size_t N = soa.size();
+        constexpr double EPS = 1e-24;
 
         for (std::size_t i = 0; i < N; ++i) {
             double fix = 0.0;
@@ -44,8 +48,14 @@ public:
                 const double dy = yi - y[j];
                 const double dz = zi - z[j];
 
-                const double r2 = dx*dx + dy*dy + dz*dz;
-                if (r2 < 1e-24) continue;
+                double r2 = dx*dx + dy*dy + dz*dz;
+                r2 = std::max(r2, EPS);
+
+                // --- cutoff check (LOCAL cutoff2) ---
+                if (_cutoff > 0.0) {
+                    const double cutoff2 = _cutoff * _cutoff;
+                    if (r2 > cutoff2) continue;
+                }
 
                 const double inv_r2 = 1.0 / r2;
 
@@ -81,4 +91,5 @@ private:
     bool _newton3;
     double _sigma2;
     double _epsilon24;
+    double _cutoff;
 };

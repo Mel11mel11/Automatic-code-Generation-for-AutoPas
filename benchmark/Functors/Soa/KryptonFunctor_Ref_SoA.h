@@ -17,9 +17,11 @@ public:
         double C6,
         double C8,
         double C10,
-        bool newton3 = true
+        bool newton3 = true,
+        double cutoff = 0.0
     )
         : _newton3(newton3)
+        , _cutoff(cutoff)
         , _A(A)
         , _a1(a1)
         , _a2(a2)
@@ -57,6 +59,12 @@ public:
 
                 double r2 = dx*dx + dy*dy + dz*dz;
                 if (r2 < 1e-24) continue;
+
+                // -------- cutoff check --------
+                if (_cutoff > 0.0) {
+                    const double cutoff2 = _cutoff * _cutoff;
+                    if (r2 > cutoff2) continue;
+                }
 
                 const double r     = std::sqrt(r2);
                 const double inv_r = 1.0 / r;
@@ -104,7 +112,7 @@ public:
                 const double dVrep =
                     V_rep * (_a1 + 2.0*_a2*r - _a_m1*inv_r*inv_r);
 
-                // dV_disp / dr  (reference: numeric derivative)
+                // dV_disp / dr (numeric reference derivative)
                 const double eps = 1e-6;
                 const double rp  = r + eps;
                 const double rm  = r - eps;
@@ -157,6 +165,7 @@ public:
 
 private:
     bool _newton3;
+    double _cutoff;
 
     double _A;
     double _a1;

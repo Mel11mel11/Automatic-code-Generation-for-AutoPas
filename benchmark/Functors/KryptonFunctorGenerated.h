@@ -19,40 +19,44 @@ public:
   // in krypton::computeForce via the recursion (Eq. 9).
   explicit KryptonFunctorGenerated(double A, double a1, double a2, double a_m1, double b,
                                    double C6, double C8, double C10,
-                                   bool newton3 = true)
+                                   bool newton3 = true, double cutoff = 0.0)
       : _A(A), _a1(a1), _a2(a2), _a_m1(a_m1), _b(b),
         _C6(C6), _C8(C8), _C10(C10),
-        _newton3(newton3) {}
+        _newton3(newton3), _cutoff(cutoff){}
 
   void AoSFunctor(Particle_T &p1, Particle_T &p2) override {
-    const auto &r1 = p1.getR();
-    const auto &r2 = p2.getR();
+  const auto &r1 = p1.getR();
+  const auto &r2 = p2.getR();
 
-    const double dx = r1[0] - r2[0];
-    const double dy = r1[1] - r2[1];
-    const double dz = r1[2] - r2[2];
+  const double dx = r1[0] - r2[0];
+  const double dy = r1[1] - r2[1];
+  const double dz = r1[2] - r2[2];
 
-    constexpr double EPS = 1e-24;
-    double r2sq = dx * dx + dy * dy + dz * dz;
-    if (r2sq < EPS) r2sq = EPS;
+  constexpr double EPS = 1e-24;
+  double r2sq = dx * dx + dy * dy + dz * dz;
+  if (r2sq < EPS) r2sq = EPS;
 
-    const double r = std::sqrt(r2sq);
+  
 
-    // Full Eq. (8) + recursion Eq. (9) is inside this call.
-    double Fmag = krypton::computeForce(
-        r, _A, _a1, _a2, _a_m1, _b, _C6, _C8, _C10);
-
-    // F = Fmag * r̂
-    const double invr = 1.0 / r;
-    const double coeff = Fmag * invr;
-
-    std::array<double, 3> F{coeff * dx, coeff * dy, coeff * dz};
-
-    p1.addF(F);
-    if (_newton3) {
-      p2.subF(F);
-    }
+  if (_cutoff > 0.0) {
+    const double cutoff2 = _cutoff * _cutoff;
+    if (r2sq > cutoff2) return;
   }
+
+  const double r = std::sqrt(r2sq);
+
+  double Fmag = krypton::computeForce(
+      r, _A, _a1, _a2, _a_m1, _b, _C6, _C8, _C10);
+
+  const double invr = 1.0 / r;
+  const double coeff = Fmag * invr;
+
+  std::array<double, 3> F{coeff * dx, coeff * dy, coeff * dz};
+
+  p1.addF(F);
+  if (_newton3) p2.subF(F);
+}
+
 
   bool allowsNewton3() const  { return true; }
   bool usesNewton3() const  { return _newton3; }
@@ -61,4 +65,5 @@ private:
   double _A, _a1, _a2, _a_m1, _b;
   double _C6, _C8, _C10;
   bool _newton3;
+  double _cutoff;
 };

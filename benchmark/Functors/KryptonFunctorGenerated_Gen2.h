@@ -9,8 +9,8 @@
 template <class Particle_T>
 class KryptonFunctorGenerated_Gen2 : public Functor<Particle_T> {
 public:
-    explicit KryptonFunctorGenerated_Gen2(double A, double a1, double a2, double a_m1, double b, double C6, double C8, double C10, bool newton3 = true)
-        : _A(A), _a1(a1), _a2(a2), _a_m1(a_m1), _b(b), _C6(C6), _C8(C8), _C10(C10), _C12(0.0), _C14(0.0), _C16(0.0), _newton3(newton3)
+    explicit KryptonFunctorGenerated_Gen2(double A, double a1, double a2, double a_m1, double b, double C6, double C8, double C10, bool newton3 = true, double cutoff = 0.0)
+        : _A(A), _a1(a1), _a2(a2), _a_m1(a_m1), _b(b), _C6(C6), _C8(C8), _C10(C10), _C12(0.0), _C14(0.0), _C16(0.0), _newton3(newton3), _cutoff(cutoff)
     {
 
 
@@ -30,6 +30,11 @@ public:
         constexpr double EPS = 1e-24;
         double r2 = dx*dx + dy*dy + dz*dz;
         if (r2 < EPS) r2 = EPS;
+
+        //
+        const double cutoff = _cutoff;
+        const double cutoff2 = cutoff * cutoff;
+        if (cutoff > 0.0 && r2 > cutoff2) return;
 
         const double r = std::sqrt(r2);
         const double inv_r = 1.0 / r;
@@ -126,4 +131,5 @@ private:
     double _C14;
     double _C16;
     bool _newton3;
+    double _cutoff;
 };
