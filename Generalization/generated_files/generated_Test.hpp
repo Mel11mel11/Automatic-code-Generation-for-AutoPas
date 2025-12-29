@@ -9,8 +9,8 @@
 template <class Particle_T>
 class TestFunctor_Gen : public Functor<Particle_T> {
 public:
-    explicit TestFunctor_Gen(bool newton3 = true)
-        : _newton3(newton3)
+    explicit TestFunctor_Gen(bool newton3 = true, double cutoff = 0.0)
+        : _newton3(newton3), _cutoff(cutoff)
     {
 
 
@@ -26,7 +26,9 @@ public:
         constexpr double EPS = 1e-24;
         double r2 = dx*dx + dy*dy + dz*dz;
         if (r2 < EPS) r2 = EPS;
-
+        const double cutoff = _cutoff;
+        const double cutoff2 = cutoff * cutoff;
+        if (cutoff > 0.0 && r2 > cutoff2) return;
         const double r = std::sqrt(r2);
         const double inv_r = 1.0 / r;
 
@@ -54,4 +56,5 @@ public:
 
 private:
     bool _newton3;
+    double _cutoff;
 };

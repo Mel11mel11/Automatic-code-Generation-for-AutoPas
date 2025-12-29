@@ -7,11 +7,13 @@
 #include "FastPow.hpp"
 
 template <class Particle_T>
-class LJFunctor_Gen : public Functor<Particle_T> {
+class MieFunctor_Gen : public Functor<Particle_T> {
 public:
-    explicit LJFunctor_Gen(double sigma, double epsilon, bool newton3 = true)
-        : _sigma(sigma), _epsilon(epsilon), _newton3(newton3)
+    explicit MieFunctor_Gen(double sigma, double epsilon, double n, double m, bool newton3 = true, double cutoff = 0.0)
+        : _sigma(sigma), _epsilon(epsilon), _n(n), _m(m), _C(0.0), _newton3(newton3), _cutoff(cutoff)
     {
+
+        _C = (_n / (_n - _m)) * std::pow(_n / _m, _m / (_n - _m));
 
 
     }
@@ -26,20 +28,25 @@ public:
         constexpr double EPS = 1e-24;
         double r2 = dx*dx + dy*dy + dz*dz;
         if (r2 < EPS) r2 = EPS;
-
+        const double cutoff = _cutoff;
+        const double cutoff2 = cutoff * cutoff;
+        if (cutoff > 0.0 && r2 > cutoff2) return;
         const double r = std::sqrt(r2);
         const double inv_r = 1.0 / r;
 
         // Parameter aliases
         const double sigma = _sigma;
         const double epsilon = _epsilon;
+        const double n = _n;
+        const double m = _m;
+        const double C = _C;
 
         const double p1m = p1.getMass();
         const double p2m = p2.getMass();
 
-        const double x0 = fast_pow(sigma, 6);
+        const double x0 = inv_r*sigma;
 
-        const double Fmag = 24*epsilon*fast_pow(inv_r, 7)*x0*(2*fast_pow(inv_r, 6)*x0 - 1);
+        const double Fmag = -C*epsilon*inv_r*(m*std::pow(x0, m) - n*std::pow(x0, n));
 
         const double fx = Fmag * dx * inv_r;
         const double fy = Fmag * dy * inv_r;
@@ -56,5 +63,9 @@ public:
 private:
     double _sigma;
     double _epsilon;
+    double _n;
+    double _m;
+    double _C;
     bool _newton3;
+    double _cutoff;
 };

@@ -10,10 +10,12 @@ public:
 
     explicit GravityFunctor_Ref_SoA(
         double G,
-        bool newton3 = true
+        bool newton3 = true,
+        double cutoff = 0.0
     )
         : _newton3(newton3)
         , _G(G)
+        , _cutoff(cutoff)
     {}
 
     void SoAFunctor(SoAView &soa) {
@@ -44,8 +46,14 @@ public:
                 const double dy = yi - y[j];
                 const double dz = zi - z[j];
 
-                const double r2 = dx*dx + dy*dy + dz*dz;
+                double r2 = dx*dx + dy*dy + dz*dz;
                 if (r2 < 1e-24) continue;
+
+                // --- cutoff check (AutoPas style) ---
+                if (_cutoff > 0.0) {
+                    const double cutoff2 = _cutoff * _cutoff;
+                    if (r2 > cutoff2) continue;
+                }
 
                 const double inv_r = 1.0 / std::sqrt(r2);
                 const double inv_r3 = inv_r * inv_r * inv_r;
@@ -78,4 +86,5 @@ public:
 private:
     bool _newton3;
     double _G;
+    double _cutoff;
 };

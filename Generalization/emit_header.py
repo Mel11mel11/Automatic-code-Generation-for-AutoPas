@@ -7,17 +7,19 @@ def emit_header(functorname, temp_calc,force_expr,newton3_default,eps_guard,pote
         ctor_param_sig = ", ".join(f"double {p}" for p in potential_param) + ", "
     else:
         ctor_param_sig = ""
-    ctor_param_sig += (
-        f"bool newton3 = {'true' if newton3_default else 'false'}"
-    )
 
+    ctor_param_sig += f"bool newton3 = {'true' if newton3_default else 'false'}"
+    ctor_param_sig += ", double cutoff = 0.0"
     # init list
+    potential_param = potential_param or []
     init_list_elems = [f"_{p}({p})" for p in potential_param]
     if add_dispersion:
         init_list_elems += ["_C12(0.0)", "_C14(0.0)", "_C16(0.0)"]
     if functorname.lower().startswith("mie"):
         init_list_elems.append("_C(0.0)")
     init_list_elems.append("_newton3(newton3)")
+    init_list_elems.append("_cutoff(cutoff)")
+
     init_list = ", ".join(init_list_elems)
 
     # aliases
@@ -39,6 +41,8 @@ def emit_header(functorname, temp_calc,force_expr,newton3_default,eps_guard,pote
     if functorname.lower().startswith("mie"):
         member_decls.append("double _C;")
     member_decls.append("bool _newton3;")
+    member_decls.append("double _cutoff;")
+
     member_decls_str = "\n    ".join(member_decls)
 
     # Mie runtime C compute
@@ -87,7 +91,9 @@ public:
         constexpr double EPS = {eps_guard};
         double r2 = dx*dx + dy*dy + dz*dz;
         if (r2 < EPS) r2 = EPS;
-
+        const double cutoff = _cutoff;
+        const double cutoff2 = cutoff * cutoff;
+        if (cutoff > 0.0 && r2 > cutoff2) return;
         const double r = std::sqrt(r2);
         const double inv_r = 1.0 / r;
 

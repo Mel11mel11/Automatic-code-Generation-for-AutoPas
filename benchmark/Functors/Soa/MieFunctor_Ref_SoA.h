@@ -14,7 +14,8 @@ public:
         double epsilon,
         int n,
         int m,
-        bool newton3 = true
+        bool newton3 = true,
+        double cutoff = 0.0
     )
         : _newton3(newton3)
         , _sigma(sigma)
@@ -22,8 +23,9 @@ public:
         , _epsilon(epsilon)
         , _n(n)
         , _m(m)
+        , _cutoff(cutoff)
     {
-        // Basic sanity checks (optional but helpful)
+        // Basic sanity checks
         assert(_n > 0 && _m > 0);
         assert(_n > _m);
 
@@ -56,23 +58,25 @@ public:
                 const double dy = yi - y[j];
                 const double dz = zi - z[j];
 
-                const double r2 = dx*dx + dy*dy + dz*dz;
+                double r2 = dx*dx + dy*dy + dz*dz;
                 if (r2 < 1e-24) continue;
+
+                // --- cutoff check (AutoPas-style) ---
+                if (_cutoff > 0.0) {
+                    const double cutoff2 = _cutoff * _cutoff;
+                    if (r2 > cutoff2) continue;
+                }
 
                 const double inv_r2 = 1.0 / r2;
                 const double s2_over_r2 = _sigma2 * inv_r2;
 
-                // We need (sigma/r)^n and (sigma/r)^m for integer n,m (odd allowed).
-                // Compute baseEvenPow = (sigma^2/r^2)^(floor(exp/2)) via multiplications.
-                // If exp is odd, multiply once more by (sigma/r) = sigma * (1/sqrt(r2)).
                 const double inv_r = 1.0 / std::sqrt(r2);
                 const double sr = _sigma * inv_r;  // (sigma/r)
 
                 const double sn = pow_sigma_over_r_int(sr, s2_over_r2, _n);
                 const double sm = pow_sigma_over_r_int(sr, s2_over_r2, _m);
 
-                // Force factor for vector form:
-                // F_vec = - C*eps * ( n*(sigma/r)^n - m*(sigma/r)^m ) * r_vec / r^2
+                // F_vec = - C*eps * ( n*(σ/r)^n - m*(σ/r)^m ) * r_vec / r^2
                 const double fac = -_C * _epsilon * (_n * sn - _m * sm) * inv_r2;
 
                 const double fxij = dx * fac;
@@ -97,8 +101,7 @@ public:
     }
 
 private:
-    // Computes (sigma/r)^exp for integer exp using:
-    // (sigma/r)^exp = (sigma^2/r^2)^(exp/2) * (sigma/r)^(exp%2)
+    // Computes (sigma/r)^exp for integer exp
     static inline double pow_sigma_over_r_int(double sr, double s2_over_r2, int exp) {
         const int half = exp / 2;
 
@@ -106,7 +109,7 @@ private:
         for (int k = 0; k < half; ++k) evenPart *= s2_over_r2;
 
         if (exp & 1) {
-            return evenPart * sr; // multiply once more by (sigma/r)
+            return evenPart * sr;
         }
         return evenPart;
     }
@@ -118,4 +121,5 @@ private:
     double _C;
     int _n;
     int _m;
+    double _cutoff;
 };
