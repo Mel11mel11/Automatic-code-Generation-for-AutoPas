@@ -7,7 +7,7 @@ make all --print-data-base --no-builtin-variables --no-builtin-rules --question
 
 # This program built for i386-apple-darwin11.3.0
 
-# Make data base, printed on Wed Dec 24 00:24:10 2025
+# Make data base, printed on Sun Jan  4 20:32:47 2026
 
 # Variables
 
@@ -28,7 +28,7 @@ VSCODE_CRASH_REPORTER_PROCESS_TYPE = extensionHost
 # automatic
 @F = $(notdir $@)
 # makefile
-CURDIR := /Users/melisaaslan/Sources
+CURDIR := /Users/melisaaslan/Automatic-code-Generation-for-AutoPas
 # makefile
 SHELL = /bin/sh
 # environment
@@ -70,7 +70,7 @@ CONDA_EXE = /opt/anaconda3/bin/conda
 # environment
 ANDROID_BUILD_TOOLS = /Users/melisaaslan/Library/Android/sdk/build-tools/33.0.0
 # environment
-PWD = /Users/melisaaslan/Sources
+PWD = /Users/melisaaslan/Automatic-code-Generation-for-AutoPas
 # environment
 HOMEBREW_CELLAR = /opt/homebrew/Cellar
 # environment
@@ -188,7 +188,7 @@ LANG = C
 
 # Directories
 
-# . (device 16777230, inode 74257266): 12 files, no impossibilities.
+# . (device 16777230, inode 85424071): 12 files, no impossibilities.
 
 # 12 files, no impossibilities in 1 directories.
 
@@ -259,12 +259,12 @@ GNUmakefile:
 
 # # of strings in strcache: 0
 # # of strcache buffers: 0
-# strcache size: total = 0 / max = 0 / min = 4096 / avg = 0
  
 make: *** No rule to make target `all'.  Stop.
 
+# strcache size: total = 0 / max = 0 / min = 4096 / avg = 0
 # strcache free: total = 0 / max = 0 / min = 4096 / avg = 0
 
-# Finished Make data base on Wed Dec 24 00:24:10 2025
+# Finished Make data base on Sun Jan  4 20:32:47 2026
 
  
