@@ -152,7 +152,7 @@ def calculate_force(expr_str, param_names, add_dispersion):
         F = eliminate_r(F)
 
     F = F.doit()   
-    
+    # lowering TT series
     F, tt_prelude = lower_tt_series(F)
     
     repl, exprs = sp.cse(F, optimizations="basic")
