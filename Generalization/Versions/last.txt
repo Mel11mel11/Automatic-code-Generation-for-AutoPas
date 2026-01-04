@@ -11,7 +11,7 @@ import emit_header as em
 from sympy.printing.cxx import cxxcode
 # for mako look at templates
 lookup = TemplateLookup(directories=["templates"])
-
+(kryptonu 46 ms indiren kod)
 
 class TT(sp.Function):
     """

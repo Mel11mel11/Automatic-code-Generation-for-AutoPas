@@ -44,15 +44,16 @@ options:
 ---
 name: Krypton_TangToennies
 expression: |
-  A*exp(a1*r + a2*r**2 + a_m1/r)
-  - (
-      C6/r**6  * (1 - exp(-b*r) * Sum((b*r)**k/factorial(k), (k, 0, 6)))
-    + C8/r**8  * (1 - exp(-b*r) * Sum((b*r)**k/factorial(k), (k, 0, 8)))
-    + C10/r**10 * (1 - exp(-b*r) * Sum((b*r)**k/factorial(k), (k, 0, 10)))
-    + C12/r**12 * (1 - exp(-b*r) * Sum((b*r)**k/factorial(k), (k, 0, 12)))
-    + C14/r**14 * (1 - exp(-b*r) * Sum((b*r)**k/factorial(k), (k, 0, 14)))
-    + C16/r**16 * (1 - exp(-b*r) * Sum((b*r)**k/factorial(k), (k, 0, 16)))
-    )
+ A*exp(a1*r + a2*r**2 + a_m1/r)
+ - (
+    C6  / r**6  * (1 - exp(-b*r) * TT(6,  b*r))
+  + C8  / r**8  * (1 - exp(-b*r) * TT(8,  b*r))
+  + C10 / r**10 * (1 - exp(-b*r) * TT(10, b*r))
+  + C12 / r**12 * (1 - exp(-b*r) * TT(12, b*r))
+  + C14 / r**14 * (1 - exp(-b*r) * TT(14, b*r))
+  + C16 / r**16 * (1 - exp(-b*r) * TT(16, b*r))
+ )
+
 parameters:
   A:   0.3200171798e8
   a1: -0.243056554e1
