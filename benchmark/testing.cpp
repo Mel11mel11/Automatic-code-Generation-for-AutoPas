@@ -8,16 +8,16 @@
 
 // Functors
 #include "../Functors/LJFunctorReference.h"
-#include "../Functors/LJFunctorGenerated.h"
+#include "../Functors/generatednew /generated_LJ_O000.hpp"
 
 #include "../Functors/MieFunctorReference.h"
-#include "../Functors/MieFunctorGenerated.h"
+#include "../Functors/generatednew /generated_Mie_O000.hpp"
 
 #include "../Functors/GravFunctorReference.h"
-#include "../Functors/GravFunctorGenerated.h"
+#include "../Functors/generatednew /generated_Gravity_O000.hpp"
 
 #include "../Functors/KryptonFunctorReference.h"
-#include "../Functors/KryptonFunctorGenerated.h"
+#include "../Functors/generatednew /generated_Krypton_O000.hpp"
 
 
 std::vector<Particle> makeGrid(int N, double spacing) {
@@ -109,27 +109,28 @@ int main() {
     const double C6   = 2.451e2;
     const double C8   = 1.684e4;
     const double C10  = 1.618e6;
-
+    const double cutoff = 2.5;
     std::cout << "Newton3 = " << newton3 << "\n";
 
     // Lennard-Jones
-    LJFunctorReference<Particle> ljR(sigma,epsilon,newton3);
-    LJFunctorGenerated<Particle> ljG(sigma,epsilon,newton3);
+    LJFunctorReference<Particle> ljR(sigma,epsilon,newton3,cutoff);
+    LJFunctor_Gen_O000<Particle> ljG(sigma,epsilon,newton3,cutoff);
+    
     testPotential("Lennard-Jones", ljR, ljG, N, spacing);
 
     // Mie
     MieFunctorReference<Particle> mieR(sigma,epsilon,n,m,newton3);
-    MieFunctorGenerated<Particle> mieG(sigma,epsilon,n,m,newton3);
+    MieFunctor_Gen_O000<Particle> mieG(sigma,epsilon,n,m,newton3);
     testPotential("Mie Potential", mieR, mieG, N, spacing);
 
     // Gravity
     GravFunctorReference<Particle> grR(G,newton3);
-    GravFunctorGenerated<Particle> grG(G,newton3);
+    GravityFunctor_Gen_O000<Particle> grG(G,newton3);
     testPotential("Gravity", grR, grG, N, spacing);
 
     // Krypton
     KryptonFunctorReference<Particle> kR(A,a1,a2,a_m1,b,C6,C8,C10,newton3);
-    KryptonFunctorGenerated<Particle> kG(A,a1,a2,a_m1,b,C6,C8,C10,newton3);
+    KryptonFunctorGenerated_Gen_O000<Particle> kG(A,a1,a2,a_m1,b,C6,C8,C10,newton3);
     testPotential("Krypton", kR, kG, N, spacing);
 
     return 0;
