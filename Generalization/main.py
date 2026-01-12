@@ -1,30 +1,47 @@
 import os
 import sys
 import sympy as sp
+from dataclasses import dataclass
+
 import yaml_loader as yl
 import validation as valid
 from replace import fix_exp
 from sympy.printing.cxx import CXX11CodePrinter
-from mako.template import Template
 from mako.lookup import TemplateLookup
 import emit_header as em
 from sympy.printing.cxx import cxxcode
+
 # for mako look at templates
 lookup = TemplateLookup(directories=["templates"])
 
 
+# ---------------------------
+# Optimization configuration
+# ---------------------------
+@dataclass(frozen=True)
+class OptimizationConfig:
+    simplify_elim: bool = False  # sp.simplify after r -> inv_r substitution
+    cse: bool = False            # SymPy common subexpression elimination
+    fast_pow: bool = False       # fast_pow for small integer exponents (vs std::pow)
+
+
+def opt_suffix(opt: OptimizationConfig) -> str:
+    return f"O{int(opt.simplify_elim)}{int(opt.cse)}{int(opt.fast_pow)}"
+
+
+# ---------------------------
+# TT symbolic function
+# ---------------------------
 class TT(sp.Function):
     """
     TT(n, x) = sum_{k=0..n} x^k / k!
-    Türev: d/dx TT(n,x) = TT(n-1,x)  (n>=1), TT(0,x)' = 0
+    Derivative: d/dx TT(n,x) = TT(n-1,x)  (n>=1), TT(0,x)' = 0
     """
     @classmethod
     def eval(cls, n, x):
-        # İstersen n küçükse burada expand edebilirsin; şimdilik dokunmuyoruz.
         return None
 
     def fdiff(self, argindex=2):
-        # argindex=2 -> x'e göre türev
         if argindex != 2:
             raise ValueError("TT sadece x'e göre türev destekliyor.")
         n, x = self.args
@@ -32,31 +49,12 @@ class TT(sp.Function):
             if int(n) <= 0:
                 return sp.Integer(0)
             return TT(n - 1, x)
-        # n sembolikse: konservatif kal
         return sp.Function.fdiff(self, argindex)
 
 
-def emit_expr(expr, add_dispersion):
-    if add_dispersion:
-        # Krypton: pow istemiyoruz
-        return cxxcode(expr)
-    else:
-        # LJ, Mie, vb.
-        return ccode_fastpow(expr)
-
-class TempAllocator:
-    def __init__(self):
-        self.idx = 0
-
-    def new(self):
-        name = f"x{self.idx}"
-        self.idx += 1
-        return name
-
-tmp_alloc = TempAllocator()
-
-
-
+# ---------------------------
+# FastPow printer (optional)
+# ---------------------------
 class FastPowPrinter(CXX11CodePrinter):
     def _print_Pow(self, expr):
         base, exp = expr.as_base_exp()
@@ -67,13 +65,33 @@ class FastPowPrinter(CXX11CodePrinter):
 
 _fastpow_printer = FastPowPrinter()
 
+
 def ccode_fastpow(e):
     return _fastpow_printer.doprint(e)
 
+
+def emit_expr(expr, add_dispersion: bool, opt: OptimizationConfig) -> str:
+    """
+    - Krypton (add_dispersion=True): use plain CXX code (no fast_pow).
+    - Others: choose between fast_pow printer and standard cxxcode printer.
+    """
+    if add_dispersion:
+        return cxxcode(expr)
+
+    if opt.fast_pow:
+        return ccode_fastpow(expr)
+
+    # fast_pow disabled: standard printer -> std::pow
+    return cxxcode(expr)
+
+
+# ---------------------------
+# TT lowering (mandatory)
+# ---------------------------
 def lower_tt_series(expr):
     """
-    Lowers truncated exponential series TT(n, x) into
-    recurrence-based numerical computation.
+    Lowers truncated exponential series TT(n, x) into recurrence-based numerical computation.
+    Applied unconditionally; for non-Krypton potentials, it is typically a no-op.
     """
     tts = list(expr.atoms(TT))
     if not tts:
@@ -98,7 +116,7 @@ def lower_tt_series(expr):
     prelude = [
         f"const double tt_x = {x_cpp};",
         "const double exp_m_tt_x = std::exp(-tt_x);",
-        f"double tt_arr[{nmax+1}];",
+        f"double tt_arr[{nmax + 1}];",
         "tt_arr[0] = 1.0;",
         "double tt_pow = 1.0;",
         "double tt_inv_fact = 1.0;",
@@ -116,6 +134,7 @@ def lower_tt_series(expr):
 
     return expr2, "\n        ".join(prelude)
 
+
 def compute_dispersion_coeffs_sympy():
     C6, C8, C10 = sp.symbols("C6 C8 C10")
     C12 = C6 * (C10 / C8) ** 3
@@ -123,17 +142,20 @@ def compute_dispersion_coeffs_sympy():
     C16 = C10 * (C14 / C12) ** 3
     return C12, C14, C16
 
-def calculate_force(expr_str, param_names, add_dispersion):
+
+def eliminate_r(expr, do_simplify: bool):
+    r = sp.Symbol("r", positive=True)
+    inv_r = sp.Symbol("inv_r", positive=True)
+    expr2 = expr.subs(r, 1 / inv_r)
+    return sp.simplify(expr2) if do_simplify else expr2
+
+
+def calculate_force(expr_str, param_names, add_dispersion: bool, opt: OptimizationConfig):
     r = sp.Symbol("r", positive=True)
     inv_r = sp.Symbol("inv_r", positive=True)
 
-    sym_locals = {
-        "r": r,
-        "inv_r": inv_r,
-    }
-     
-    sym_locals["TT"] = TT
-    
+    sym_locals = {"r": r, "inv_r": inv_r, "TT": TT}
+
     for p in param_names:
         sym_locals[p] = sp.Symbol(p)
 
@@ -148,19 +170,24 @@ def calculate_force(expr_str, param_names, add_dispersion):
 
     U = sp.sympify(expr_str, locals=sym_locals)
     F = -sp.diff(U, r)
+
     if not add_dispersion:
-        F = eliminate_r(F)
+        F = eliminate_r(F, do_simplify=opt.simplify_elim)
 
-    F = F.doit()   
-    # lowering TT series
+    F = F.doit()
+
+    # Mandatory lowering step (Krypton); no-op otherwise
     F, tt_prelude = lower_tt_series(F)
-    
-    repl, exprs = sp.cse(F, optimizations="basic")
-    reduced = exprs[0]
 
+    # Optional CSE
+    if opt.cse:
+        repl, exprs = sp.cse(F, optimizations="basic")
+        reduced = exprs[0]
+    else:
+        repl, reduced = [], F
 
     temp_lines = [
-        f"const double {s} = {fix_exp(emit_expr(rhs, add_dispersion))};"
+        f"const double {s} = {fix_exp(emit_expr(rhs, add_dispersion, opt))};"
         for s, rhs in repl
     ]
 
@@ -169,37 +196,30 @@ def calculate_force(expr_str, param_names, add_dispersion):
         temps_code += "\n        "
     temps_code += "\n        ".join(temp_lines)
 
-    force_expr = fix_exp(emit_expr(reduced, add_dispersion))
-
+    force_expr = fix_exp(emit_expr(reduced, add_dispersion, opt))
     return temps_code, force_expr
 
-def eliminate_r(expr):
-    r = sp.Symbol("r", positive=True)
-    inv_r = sp.Symbol("inv_r", positive=True)
-    return sp.simplify(expr.subs(r, 1 / inv_r))
 
-
-def generate_soa(cfg: dict, out_dir: str):
-    #  for soa.h per potential the parameters and potential name
+def generate_soa(cfg: dict, out_dir: str, opt: OptimizationConfig):
     classname = cfg["classname"]
     params = cfg["parameters"]
     param_names = list(params.keys())
-    # handling cutoff
+
     cutoff = cfg.get("cutoff")
     cutoff_enabled = cutoff is not None
     cutoff_value = float(cutoff) if cutoff_enabled else 0.0
-    # check for dispersion for Krypton
+
     add_dispersion = all(k in param_names for k in ["C6", "C8", "C10"])
-    # temporary code extraction and force expression
-    temps_code, force_expr = calculate_force(
-        cfg["expr_str"], param_names, add_dispersion
-    )
-    #
+
+    temps_code, force_expr = calculate_force(cfg["expr_str"], param_names, add_dispersion, opt)
+
     header_tpl = lookup.get_template("soa_functor.h.mako")
     uses_mass = ("p1m" in cfg["expr_str"]) or ("p2m" in cfg["expr_str"])
 
+    suffix = opt_suffix(opt)
+
     ctx = {
-        "classname": classname,
+        "classname": f"{classname}_{suffix}",
         "parameters": params,
         "temps_code": temps_code,
         "force_expr": force_expr,
@@ -212,11 +232,12 @@ def generate_soa(cfg: dict, out_dir: str):
 
     header_code = header_tpl.render(**ctx)
 
-    hpath = os.path.join(out_dir, f"{classname}_SoA.h")
+    hpath = os.path.join(out_dir, f"{classname}_{suffix}_SoA.h")
     with open(hpath, "w") as f:
         f.write(header_code)
 
     print("[SoA] Generated:", hpath)
+
 
 def main():
     if len(sys.argv) < 3:
@@ -239,37 +260,57 @@ def main():
         else:
             cfgs.append(valid.validate_one(doc))
 
+    # Minimal set for ablation (5 variants)
+    opt_list = [
+    OptimizationConfig(False, False, False),  # O000 baseline
+
+    OptimizationConfig(True,  False, False),  # O100 simplify
+    OptimizationConfig(False, True,  False),  # O010 CSE
+    OptimizationConfig(False, False, True),   # O001 fast_pow
+
+    OptimizationConfig(True,  False, True),   # O101 simplify + fast_pow
+    OptimizationConfig(True,  True,  False),  # O110 simplify + CSE
+    OptimizationConfig(False, True,  True),   # O011 CSE + fast_pow
+
+    OptimizationConfig(True,  True,  True),   # O111 full
+]
+   
+
     for cfg in cfgs:
-        classname = cfg["classname"]
+        base_classname = cfg["classname"]
         params = cfg["parameters"]
         param_names = list(params.keys())
 
         add_dispersion = all(k in param_names for k in ["C6", "C8", "C10"])
 
-        temps, force = calculate_force(
-            cfg["expr_str"],
-            param_names,
-            add_dispersion,
-        )
+        for opt in opt_list:
+            suffix = opt_suffix(opt)
+            classname = f"{base_classname}_{suffix}"
 
-        cpp = em.emit_header(
-            classname,
-            temps,
-            force,
-            cfg["newton3_default"],
-            cfg["eps_guard"],
-            param_names,
-            add_dispersion,
-        )
+            temps, force = calculate_force(cfg["expr_str"], param_names, add_dispersion, opt)
 
-        out_path = os.path.join(out_dir, cfg["filename"])
-        with open(out_path, "w") as f:
-            f.write(cpp)
+            cpp = em.emit_header(
+                classname,
+                temps,
+                force,
+                cfg["newton3_default"],
+                cfg["eps_guard"],
+                param_names,
+                add_dispersion,
+            )
 
-        if cfg.get("generate_soa", False):
-            generate_soa(cfg, out_dir)
+            base, ext = os.path.splitext(cfg["filename"])
+            out_name = f"{base}_{suffix}{ext}"
+            out_path = os.path.join(out_dir, out_name)
 
-        print("[LEVEL-2] Generated:", cfg["filename"])
+            with open(out_path, "w") as f:
+                f.write(cpp)
+
+            if cfg.get("generate_soa", False):
+                generate_soa(cfg, out_dir, opt)
+
+            print("[LEVEL-2] Generated:", out_name)
+
 
 if __name__ == "__main__":
     main()
