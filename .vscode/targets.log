@@ -10,7 +10,7 @@ make all --print-data-base --no-builtin-variables --no-builtin-rules --question
 make: *** No rule to make target `all'.  Stop.
 
 
-# Make data base, printed on Sun Jan 11 13:30:20 2026
+# Make data base, printed on Tue Jan 13 23:42:30 2026
 
 # Variables
 
@@ -93,7 +93,7 @@ VSCODE_CODE_CACHE_PATH = /Users/melisaaslan/Library/Application Support/Code/Cac
 # environment
 LOGNAME = melisaaslan
 # environment
-APPLICATION_INSIGHTS_NO_DIAGNOSTIC_CHANNEL = true
+APPLICATION_INSIGHTS_NO_DIAGNOSTIC_CHANNEL = 1
 # environment
 CONDA_PROMPT_MODIFIER = (base) 
 # environment
@@ -148,6 +148,8 @@ XPC_SERVICE_NAME = application.com.microsoft.VSCode.22767268.22767274
 HOMEBREW_PREFIX = /opt/homebrew
 # automatic
 +D = $(patsubst %/,%,$(dir $+))
+# environment
+VSCODE_L10N_BUNDLE_LOCATION = file:///Users/melisaaslan/.vscode/extensions/ms-ceintl.vscode-language-pack-de-1.91.2024071009/translations/extensions/vscode.json-language-features.i18n.json
 # automatic
 +F = $(notdir $+)
 # environment
@@ -183,7 +185,7 @@ VSCODE_PID = 1810
 # environment
 LANG = C
 # variable set hash-table stats:
-# Load=84/1024=8%, Rehash=0, Collisions=2/105=2%
+# Load=85/1024=8%, Rehash=0, Collisions=2/106=2%
 
 # Pattern-specific Variable Values
 
@@ -191,9 +193,9 @@ LANG = C
 
 # Directories
 
-# . (device 16777230, inode 85424071): 12 files, no impossibilities.
+# . (device 16777230, inode 85424071): 13 files, no impossibilities.
 
-# 12 files, no impossibilities in 1 directories.
+# 13 files, no impossibilities in 1 directories.
 
 # Implicit Rules
 
@@ -263,8 +265,9 @@ GNUmakefile:
 # # of strings in strcache: 0
 # # of strcache buffers: 0
 # strcache size: total = 0 / max = 0 / min = 4096 / avg = 0
+ 
 # strcache free: total = 0 / max = 0 / min = 4096 / avg = 0
 
-# Finished Make data base on Sun Jan 11 13:30:20 2026
+# Finished Make data base on Tue Jan 13 23:42:30 2026
 
  

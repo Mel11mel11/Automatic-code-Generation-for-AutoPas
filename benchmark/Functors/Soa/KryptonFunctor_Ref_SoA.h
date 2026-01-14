@@ -2,7 +2,7 @@
 #include "../Particle.h"
 #include <cstddef>
 #include <cmath>
-
+#include "FastPow.hpp"
 template <class SoAView_T>
 class KryptonFunctor_Ref_SoA {
 public:

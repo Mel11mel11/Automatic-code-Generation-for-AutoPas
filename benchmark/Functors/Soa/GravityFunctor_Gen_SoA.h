@@ -3,7 +3,7 @@
 #include <cmath>
 #include <cstddef>
 #include <algorithm>  // std::max
-
+#include "FastPow.hpp"
 template <class SoAView_T>
 class GravityFunctor_Gen_SoA {
 public:
