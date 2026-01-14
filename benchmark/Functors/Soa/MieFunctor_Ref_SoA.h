@@ -3,7 +3,7 @@
 #include <cstddef>
 #include <cmath>
 #include <cassert>
-
+#include "FastPow.hpp"
 template <class SoAView_T>
 class MieFunctor_Ref_SoA {
 public:

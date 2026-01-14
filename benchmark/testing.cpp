@@ -67,7 +67,16 @@ double maxDelta(const std::vector<P>& R, const std::vector<P>& G) {
     }
     return m;
 }
-
+template<class P>
+double maxForceMagnitude(const std::vector<P>& ps) {
+    double m = 0.0;
+    for (const auto& p : ps) {
+        auto f = p.getF();
+        double mag = std::sqrt(f[0]*f[0] + f[1]*f[1] + f[2]*f[2]);
+        m = std::max(m, mag);
+    }
+    return m;
+}
 template<class REF,class GEN>
 void testPotential(const std::string& name,
                    REF& refF, GEN& genF,
@@ -81,23 +90,27 @@ void testPotential(const std::string& name,
 
     auto Sref = sumForces(ps_ref);
     auto Sgen = sumForces(ps_gen);
+
     double dmax = maxDelta(ps_ref, ps_gen);
+    double fmax = maxForceMagnitude(ps_ref);
+    double rel  = (fmax > 0.0) ? dmax / fmax : 0.0;
 
     std::cout << "\n=== " << name << " ===\n";
-    std::cout << "ΣF(Ref) = (" << Sref[0] << ", " << Sref[1] << ", " << Sref[2] << ")\n";
-    std::cout << "ΣF(Gen) = (" << Sgen[0] << ", " << Sgen[1] << ", " << Sgen[2] << ")\n";
-    std::cout << "max|ΔF| = " << dmax << "\n";
+    std::cout << "max|ΔF|      = " << dmax << "\n";
+    std::cout << "max|F_ref|   = " << fmax << "\n";
+    std::cout << "relative err = " << rel  << "\n";
+    std::cout << "RELERR " << rel << "\n";
 }
 
 int main() {
 
-    const int N = 4;
+    const int N = 10;
     const double spacing = 1.2;
     const bool newton3 = false;
 
     const double sigma = 1.0;
     const double epsilon = 1.0;
-    const int n = 7, m = 6;
+    const int n = 12, m = 6;
     const double G = 6.67430e-11;
 
     // Krypton params --------------------
@@ -119,8 +132,8 @@ int main() {
     testPotential("Lennard-Jones", ljR, ljG, N, spacing);
 
     // Mie
-    MieFunctorReference<Particle> mieR(sigma,epsilon,n,m,newton3);
-    MieFunctor_Gen_O000<Particle> mieG(sigma,epsilon,n,m,newton3);
+    MieFunctorReference<Particle> mieR(sigma,epsilon,n,m,newton3,cutoff);
+    MieFunctor_Gen_O000<Particle> mieG(sigma,epsilon,n,m,newton3,cutoff);
     testPotential("Mie Potential", mieR, mieG, N, spacing);
 
     // Gravity
@@ -129,8 +142,8 @@ int main() {
     testPotential("Gravity", grR, grG, N, spacing);
 
     // Krypton
-    KryptonFunctorReference<Particle> kR(A,a1,a2,a_m1,b,C6,C8,C10,newton3);
-    KryptonFunctorGenerated_Gen_O000<Particle> kG(A,a1,a2,a_m1,b,C6,C8,C10,newton3);
+    KryptonFunctorReference<Particle> kR(A,a1,a2,a_m1,b,C6,C8,C10,newton3,cutoff);
+    KryptonFunctorGenerated_Gen_O000<Particle> kG(A,a1,a2,a_m1,b,C6,C8,C10,newton3,cutoff);
     testPotential("Krypton", kR, kG, N, spacing);
 
     return 0;

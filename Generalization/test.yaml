@@ -1,6 +1,4 @@
 #This data is used to test the generalization capabilities of a model across different scenarios.
-
----
 name: Test
 expression: "r**2"
 parameters: {}
