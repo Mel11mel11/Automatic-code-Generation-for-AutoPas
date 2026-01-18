@@ -3,9 +3,9 @@ import sys
 import sympy as sp
 from dataclasses import dataclass
 
-import yaml_loader as yl
-import validation as valid
-from replace import fix_exp
+import yaml_loader as yl # for reading the input
+import validation as valid # for validating the input
+from replace import fix_exp # to fix exp(...) in generated code
 from sympy.printing.cxx import CXX11CodePrinter
 from mako.lookup import TemplateLookup
 import emit_header as em
@@ -23,15 +23,14 @@ class OptimizationConfig:
     simplify_elim: bool = False  # sp.simplify after r -> inv_r substitution
     cse: bool = False            # SymPy common subexpression elimination
     fast_pow: bool = False       # fast_pow for small integer exponents (vs std::pow)
-
+    aggressive_factor: bool = False  # EXPERIMENTAL
 
 def opt_suffix(opt: OptimizationConfig) -> str:
-    return f"O{int(opt.simplify_elim)}{int(opt.cse)}{int(opt.fast_pow)}"
+    return f"Opt{int(opt.simplify_elim)}{int(opt.cse)}{int(opt.fast_pow)}{int(opt.aggressive_factor)}"
 
 
-# ---------------------------
+
 # TT symbolic function
-# ---------------------------
 class TT(sp.Function):
     """
     TT(n, x) = sum_{k=0..n} x^k / k!
@@ -52,9 +51,8 @@ class TT(sp.Function):
         return sp.Function.fdiff(self, argindex)
 
 
-# ---------------------------
-# FastPow printer (optional)
-# ---------------------------
+
+# FastPow printer 
 class FastPowPrinter(CXX11CodePrinter):
     def _print_Pow(self, expr):
         base, exp = expr.as_base_exp()
@@ -85,9 +83,8 @@ def emit_expr(expr, add_dispersion: bool, opt: OptimizationConfig) -> str:
     return cxxcode(expr)
 
 
-# ---------------------------
 # TT lowering (mandatory)
-# ---------------------------
+
 def lower_tt_series(expr):
     """
     Lowers truncated exponential series TT(n, x) into recurrence-based numerical computation.
@@ -141,6 +138,25 @@ def compute_dispersion_coeffs_sympy():
     C14 = C8 * (C12 / C10) ** 3
     C16 = C10 * (C14 / C12) ** 3
     return C12, C14, C16
+def aggressive_factor_before_cse(expr):
+    """
+    Experimental algebraic normalization pass to expose common inverse-distance
+    subexpressions before CSE.
+
+    WARNING:
+    - May increase expression size
+    - May change evaluation order (but not semantics)
+    - Intended for experimentation only
+    """
+
+    # Try to normalize powers (e.g., inv_r^a * inv_r^b -> inv_r^(a+b))
+    expr = sp.powsimp(expr, force=True)
+
+    # Factor out common multiplicative terms
+    expr = sp.factor_terms(expr)
+
+    return expr
+
 
 
 def eliminate_r(expr, do_simplify: bool):
@@ -178,6 +194,12 @@ def calculate_force(expr_str, param_names, add_dispersion: bool, opt: Optimizati
 
     # Mandatory lowering step (Krypton); no-op otherwise
     F, tt_prelude = lower_tt_series(F)
+
+#   Experimental aggressive factoring
+    if opt.aggressive_factor:
+     F = aggressive_factor_before_cse(F)
+
+# Optional CSE
 
     # Optional CSE
     if opt.cse:
@@ -262,18 +284,22 @@ def main():
 
     # Minimal set for ablation (5 variants)
     opt_list = [
-    OptimizationConfig(False, False, False),  # O000 baseline
+    OptimizationConfig(False, False, False, False),  # O0000 baseline
 
-    OptimizationConfig(True,  False, False),  # O100 simplify
-    OptimizationConfig(False, True,  False),  # O010 CSE
-    OptimizationConfig(False, False, True),   # O001 fast_pow
+    OptimizationConfig(True,  False, False, False),  # O1000 simplify
+    OptimizationConfig(False, True,  False, False),  # O0100 CSE
+    OptimizationConfig(False, False, True,  False),  # O0010 fast_pow
 
-    OptimizationConfig(True,  False, True),   # O101 simplify + fast_pow
-    OptimizationConfig(True,  True,  False),  # O110 simplify + CSE
-    OptimizationConfig(False, True,  True),   # O011 CSE + fast_pow
+    OptimizationConfig(True,  False, True,  False),  # O1010 simplify + fast_pow
+    OptimizationConfig(True,  True,  False, False),  # O1100 simplify + CSE
+    OptimizationConfig(False, True,  True,  False),  # O0110 CSE + fast_pow
 
-    OptimizationConfig(True,  True,  True),   # O111 full
+    OptimizationConfig(True,  True,  True,  False),  # O1110 full (3 optimizations)
+
+    # --- Experimental variant ---
+    OptimizationConfig(False, True,  False, True),   # O0101 CSE + aggressive_factor (EXPERIMENTAL)
 ]
+
    
 
     for cfg in cfgs:
