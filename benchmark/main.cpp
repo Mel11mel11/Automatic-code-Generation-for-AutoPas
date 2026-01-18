@@ -381,7 +381,7 @@ int main(int argc, char **argv) {
 
   const double cutoff = 2.5;
   const double sigma = 1.0, epsilon = 1.0;
-  const int n = 12, m = 6;
+  const int n = 7, m = 6;
   const double G = 6.67430e-11;
 
   // IMPORTANT: Newton3 needs to be consistent between AoS and SoA for equality.

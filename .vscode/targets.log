@@ -6,11 +6,8 @@ make all --print-data-base --no-builtin-variables --no-builtin-rules --question
 # PARTICULAR PURPOSE.
 
 # This program built for i386-apple-darwin11.3.0
- 
-make: *** No rule to make target `all'.  Stop.
 
-
-# Make data base, printed on Tue Jan 13 23:42:30 2026
+# Make data base, printed on Sun Jan 18 21:28:07 2026
 
 # Variables
 
@@ -93,7 +90,7 @@ VSCODE_CODE_CACHE_PATH = /Users/melisaaslan/Library/Application Support/Code/Cac
 # environment
 LOGNAME = melisaaslan
 # environment
-APPLICATION_INSIGHTS_NO_DIAGNOSTIC_CHANNEL = 1
+APPLICATION_INSIGHTS_NO_DIAGNOSTIC_CHANNEL = true
 # environment
 CONDA_PROMPT_MODIFIER = (base) 
 # environment
@@ -255,6 +252,9 @@ GNUmakefile:
 # Load=0/32=0%, Rehash=0, Collisions=0/0=0%
 
 # files hash-table stats:
+ 
+make: *** No rule to make target `all'.  Stop.
+
 # Load=6/1024=1%, Rehash=0, Collisions=0/17=0%
 # VPATH Search Paths
 
@@ -265,9 +265,8 @@ GNUmakefile:
 # # of strings in strcache: 0
 # # of strcache buffers: 0
 # strcache size: total = 0 / max = 0 / min = 4096 / avg = 0
- 
 # strcache free: total = 0 / max = 0 / min = 4096 / avg = 0
 
-# Finished Make data base on Tue Jan 13 23:42:30 2026
+# Finished Make data base on Sun Jan 18 21:28:07 2026
 
  
