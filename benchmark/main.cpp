@@ -27,6 +27,8 @@
 #include "Functors/generatednew /generated_LJ_O011.hpp"
 #include "Functors/generatednew /generated_LJ_O110.hpp"
 #include "Functors/generatednew /generated_LJ_O111.hpp"
+#include "Functors/without_cutoff/LJRef_wo_cutoff.h"
+#include "Functors/without_cutoff_aos/LJFunctor_Gen_Opt1110.hpp"
 
 // ----------------------SoA----------------------------
 #include "Functors/generatednew /LJFunctor_Gen_O000_SoA.h"
@@ -47,6 +49,9 @@
 #include "Functors/generatednew /generated_Gravity_O110.hpp"
 #include "Functors/generatednew /generated_Gravity_O011.hpp"
 #include "Functors/generatednew /generated_Gravity_O111.hpp"
+#include "Functors/without_cutoff/GravRef_wo_cutoff.h"
+#include "Functors/without_cutoff_aos/generated_Gravity_Opt1110.hpp"
+
 //---------------------SoA--------------------------------
 
 #include "Functors/generatednew /GravityFunctor_Gen_O000_SoA.h"
@@ -67,6 +72,8 @@
 #include "Functors/generatednew /generated_Mie_O110.hpp"
 #include "Functors/generatednew /generated_Mie_O011.hpp"
 #include "Functors/generatednew /generated_Mie_O111.hpp"
+#include "Functors/without_cutoff/MieRef_wo_cutoff.h"
+#include "Functors/without_cutoff_aos/MieFunctor_Gen_Opt1110.hpp"
 
 #include "Functors/generatednew /MieFunctor_Gen_O000_SoA.h" 
 #include "Functors/generatednew /MieFunctor_Gen_O001_SoA.h"
@@ -85,6 +92,8 @@
 #include "Functors/generatednew /generated_Krypton_O110.hpp"
 #include "Functors/generatednew /generated_Krypton_O011.hpp"
 #include "Functors/generatednew /generated_Krypton_O111.hpp"
+#include "Functors/without_cutoff/KryptonRef_wo_cutoff.h"
+#include "Functors/without_cutoff_aos/generated_Krypton_Opt1110.hpp"
 
 #include "Functors/generatednew /KryptonFunctorGenerated_Gen_O000_SoA.h"
 #include "Functors/generatednew /KryptonFunctorGenerated_Gen_O001_SoA.h"
@@ -391,7 +400,10 @@ int main(int argc, char **argv) {
     LJFunctorReference<ParticleType> ref(sigma, epsilon, newton3, cutoff);
     LJFunctor_Gen_SoA<ParticleSoA> ljSoa(sigma, epsilon, newton3, cutoff);
     LJFunctor_Ref_SoA<ParticleSoA> ljRefSoa(sigma, epsilon, newton3, cutoff);
+    
+    LJFunctorReference_wo_cutoff<ParticleType> ref_wo(sigma, epsilon, newton3);
 
+    LJFunctor_Gen_Opt1110_without<ParticleType> ref_wo_opt(sigma, epsilon, newton3);
     LJFunctor_Gen_O000<ParticleType> oto000(sigma, epsilon, newton3, cutoff);
     LJFunctor_Gen_O001<ParticleType> oto001(sigma, epsilon, newton3, cutoff);
     LJFunctor_Gen_O010<ParticleType> oto010(sigma, epsilon, newton3, cutoff);
@@ -400,6 +412,7 @@ int main(int argc, char **argv) {
     LJFunctor_Gen_O110<ParticleType> oto110(sigma, epsilon, newton3, cutoff);
     LJFunctor_Gen_O011<ParticleType> oto011(sigma, epsilon, newton3, cutoff);
     LJFunctor_Gen_O111<ParticleType> oto111(sigma, epsilon, newton3, cutoff);
+   
 
     LJFunctor_Gen_O000_SoA<ParticleSoA> lj_o000_soa(sigma, epsilon, newton3, cutoff);
     LJFunctor_Gen_O001_SoA<ParticleSoA> lj_o001_soa(sigma, epsilon, newton3, cutoff);
@@ -409,12 +422,11 @@ int main(int argc, char **argv) {
     LJFunctor_Gen_O110_SoA<ParticleSoA> lj_o110_soa(sigma, epsilon, newton3, cutoff);
     LJFunctor_Gen_O011_SoA<ParticleSoA> lj_o011_soa(sigma, epsilon, newton3, cutoff);
     LJFunctor_Gen_O111_SoA<ParticleSoA> lj_o111_soa(sigma, epsilon, newton3, cutoff);
-    // Verify semantics: AoS reference vs SoA variants
-   // verifyAoSvsSoA("LJ: REF(AoS) vs GEN(SoA)", ps0, ref, ljSoa, 1e-10, 1e-10);
-   // verifyAoSvsSoA("LJ: REF(AoS) vs REF(SoA)", ps0, ref, ljRefSoa, 1e-10, 1e-10);
-
+    
     // Bench AoS
     bench("LJ-REF", ref);
+    bench("LJ-REF (without cutoff)", ref_wo);
+    bench("LJ-REF (without cutoff+opt)", ref_wo_opt);
     bench("LJ-O000 (no opt)", oto000);
     bench("LJ-O001 (fast_pow)", oto001);
     bench("LJ-O010 (CSE)", oto010);
@@ -423,6 +435,10 @@ int main(int argc, char **argv) {
     bench("LJ-O110 (simplify+CSE)", oto110);
     bench("LJ-O011 (CSE+fast_pow)", oto011);
     bench("LJ-O111 (full)", oto111);
+      std::cout << "---------------------------------------\n";
+      std::cout << "without cutoff\n";
+
+      std::cout << "---------------------------------------\n";
   std::cout << "🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢\n";
 
     // Bench SoA
@@ -443,7 +459,7 @@ int main(int argc, char **argv) {
 
   if (mode == "mie" || mode == "all") {
     MieFunctorReference<ParticleType> mieRef(sigma, epsilon, n, m, false, cutoff);
-
+    MieFunctorReference_wo_cutoff<ParticleType> mieRef_wo(sigma, epsilon, n, m, false);
     MieFunctor_Gen_O000<ParticleType> mieO000(sigma, epsilon, n, m, false, cutoff);
     MieFunctor_Gen_O001<ParticleType> mieO001(sigma, epsilon, n, m, false, cutoff);
     MieFunctor_Gen_O010<ParticleType> mieO010(sigma, epsilon, n, m, false, cutoff);
@@ -456,6 +472,7 @@ int main(int argc, char **argv) {
 
     MieFunctor_Gen_SoA<ParticleSoA> mieSoa(sigma, epsilon, n, m, false, cutoff);
     MieFunctor_Ref_SoA<ParticleSoA> mieRefSoa(sigma, epsilon, n, m, false, cutoff);
+    MieFunctor_Gen_Opt1110_without<ParticleType> mie_wo_opt(sigma, epsilon, n, m, false);
     MieFunctor_Gen_O000_SoA<ParticleSoA> mie_o000_soa(sigma, epsilon, n, m, false, cutoff);
     MieFunctor_Gen_O001_SoA<ParticleSoA> mie_o001_soa(sigma, epsilon, n, m, false, cutoff);
     MieFunctor_Gen_O010_SoA<ParticleSoA> mie_o010_soa(sigma, epsilon, n, m, false, cutoff);
@@ -471,6 +488,8 @@ int main(int argc, char **argv) {
 
     // Bench AoS
     bench("MIE-REF", mieRef);
+    bench("MIE-REF (without cutoff)", mieRef_wo);
+    bench("MIE-REF (without cutoff+opt)", mie_wo_opt);
     bench("MIE-O000 (no opt)", mieO000);
     bench("MIE-O001 (fast_pow)", mieO001);
     bench("MIE-O010 (CSE)", mieO010);
@@ -500,6 +519,10 @@ int main(int argc, char **argv) {
     KryptonFunctorReference<ParticleType> kry_ref(1.213e4, 2.821, -0.748, 0.972, 13.29,
                                                  64.3, 307.2, 1096.0, false, cutoff);
 
+    KryptonFunctorReference_wo_cutoff<ParticleType> kry_ref_wo(1.213e4, 2.821, -0.748, 0.972, 13.29,
+                                                         64.3, 307.2, 1096.0, false);
+    KryptonFunctorGenerated_Gen_Opt1110_without<ParticleType> kry_ref_wo_opt(1.213e4, 2.821, -0.748, 0.972, 13.29,
+                                                          64.3, 307.2, 1096.0, false);
     KryptonFunctorGenerated_Gen_O000<ParticleType> kry_000(1.213e4, 2.821, -0.748, 0.972, 13.29,
                                                           64.3, 307.2, 1096.0, false, cutoff);
     KryptonFunctorGenerated_Gen_O001<ParticleType> kry_001(1.213e4, 2.821, -0.748, 0.972, 13.29,
@@ -548,6 +571,8 @@ int main(int argc, char **argv) {
 
     // Bench AoS
     bench("KRY-REF", kry_ref);
+    bench("KRY-REF (without cutoff)", kry_ref_wo);
+    bench("KRY- full without cutoff", kry_ref_wo_opt);
     bench("KRY-O000 (no opt)", kry_000);
     bench("KRY-O001 (fast_pow)", kry_001);
     bench("KRY-O010 (CSE)", kry_010);
@@ -568,14 +593,15 @@ int main(int argc, char **argv) {
     benchSoA("KRY-O110-SOA (simplify+CSE)", kry_o110_soa);
     benchSoA("KRY-O011-SOA (CSE+fast_pow)", kry_o011_soa);
     benchSoA("KRY-O111-SOA (full)", kry_o111_soa);
-
+   
   }
 
   std::cout << "---------------------------------------\n";
 
   if (mode == "grav" || mode == "all") {
     GravFunctorReference<ParticleType> gRef(G, true, cutoff);
-
+    GravFunctorReference_wo_cutoff<ParticleType> gRef_wo(G, true);
+    GravityFunctor_Gen_Opt1110_without<ParticleType> gRef_wo_opt(G, true);
     GravityFunctor_Gen_O000<ParticleType> go000(G, true, cutoff);
     GravityFunctor_Gen_O001<ParticleType> go001(G, true, cutoff);
     GravityFunctor_Gen_O010<ParticleType> go010(G, true, cutoff);
@@ -584,7 +610,7 @@ int main(int argc, char **argv) {
     GravityFunctor_Gen_O110<ParticleType> go110(G, true, cutoff);
     GravityFunctor_Gen_O011<ParticleType> go011(G, true, cutoff);
     GravityFunctor_Gen_O111<ParticleType> go111(G, true, cutoff);
-
+    
     GravityFunctor_Gen_SoA<ParticleSoA> gravSoa(G, true, cutoff);
     GravityFunctor_Ref_SoA<ParticleSoA> gravRefSoa(G, true, cutoff);
     GravityFunctor_Gen_O000_SoA<ParticleSoA> grav_o000_soa(G, true, cutoff);
@@ -597,12 +623,11 @@ int main(int argc, char **argv) {
     GravityFunctor_Gen_O111_SoA<ParticleSoA> grav_o111_soa(G, true, cutoff);
 
 
-    // Verify (gravity can be tiny; atol might dominate—keep an eye on it)
-   // verifyAoSvsSoA("GRAV: REF(AoS) vs GEN(SoA)", ps0, gRef, gravSoa, 1e-12, 1e-10);
-   // verifyAoSvsSoA("GRAV: REF(AoS) vs REF(SoA)", ps0, gRef, gravRefSoa, 1e-12, 1e-10);
-
+  
     // Bench AoS
     bench("GRAV-REF", gRef);
+    bench("GRAV-REF (without cutoff)", gRef_wo);
+    bench("GRAV- full without cutoff", gRef_wo_opt);
     bench("GRAV-O000 (no opt)", go000);
     bench("GRAV-O001 (fast_pow)", go001);
     bench("GRAV-O010 (CSE)", go010);
