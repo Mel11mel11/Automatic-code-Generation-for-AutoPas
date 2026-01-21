@@ -21,7 +21,7 @@ double getFz() const { return _force[2]; }
     const std::array<double,3>& getF() const { return _force; }
     void setF(std::array<double,3> f) { _force = f; }
 
-    // Particle.h  — addF/subF’yi güvenli, bileşen bileşen yaz
+    // Particle.h  
     void addF(std::array<double,3> fAdd) {
     _force[0] += fAdd[0];
     _force[1] += fAdd[1];
@@ -49,5 +49,5 @@ private:
     std::array<double,3> _velocity{};
     std::array<double,3> _force{};
     size_t _id{};
-    double _mass{1.0};   // <-- mutlaka ekli olmalı
+    double _mass{1.0};   // 
 };

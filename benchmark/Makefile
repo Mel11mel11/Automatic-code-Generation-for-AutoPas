@@ -12,7 +12,7 @@ TEST_TARGET := testing
 STRICT_THR = 1e-12
 BENCH_THR  = 1e-10
 
-# Varsayılan hedef: önce test, sonra build, sonra run
+# Goal: testing, build, run
 all: testcheck $(TARGET)
 	@echo "🚀 Running ./$(TARGET)..."
 	@./$(TARGET)
@@ -21,7 +21,7 @@ all: testcheck $(TARGET)
 $(TEST_TARGET): $(TEST_SRC)
 	$(CXX) $(CXXFLAGS) $(TEST_SRC) $(wildcard generated_files/*.cpp) -o $(TEST_TARGET)
 
-# --- test kontrolü ---
+
 testcheck: $(TEST_TARGET)
 	@echo "Running pre-check tests..."
 	@./$(TEST_TARGET) | tee test_output.txt
