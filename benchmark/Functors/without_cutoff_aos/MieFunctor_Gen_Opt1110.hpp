@@ -39,9 +39,6 @@ public:
         const double m = _m;
         const double C = _C;
 
-        const double p1m = p1.getMass();
-        const double p2m = p2.getMass();
-
         const double x0 = inv_r*sigma;
 
         const double Fmag = -C*epsilon*inv_r*(m*std::pow(x0, m) - n*std::pow(x0, n));

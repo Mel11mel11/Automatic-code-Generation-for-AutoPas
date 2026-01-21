@@ -53,7 +53,7 @@ public:
         const double p2m = p2.getMass();
 
         const double tt_x = b*r;
-        const double exp_m_tt_x = std::exp(-tt_x);
+    
         double tt_arr[17];
         tt_arr[0] = 1.0;
         double tt_pow = 1.0;

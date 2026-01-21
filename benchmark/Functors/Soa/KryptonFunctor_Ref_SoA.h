@@ -99,11 +99,6 @@ public:
                 const double r8  = r6 * inv_r * inv_r;
                 const double r10 = r8 * inv_r * inv_r;
 
-                const double V_disp =
-                    - f6  * _C6  * r6
-                    - f8  * _C8  * r8
-                    - f10 * _C10 * r10;
-
                 /* -----------------------------
                  * Force = -dV/dr
                  * ----------------------------- */

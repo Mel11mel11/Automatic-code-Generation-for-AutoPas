@@ -129,7 +129,7 @@ using ParticleType = Particle;
 struct ParticleSoA {
   std::vector<double> x, y, z; // positions
   std::vector<double> fx, fy, fz; // force components
-  std::vector<double> mass;
+  std::vector<double> mass; // mass 
 
   std::size_t size() const { return x.size(); }
 
@@ -145,17 +145,20 @@ struct ParticleSoA {
 };
 
 struct ForceSums3D {
-  std::array<double, 3> sum_getF;
-  std::array<double, 3> sum_getXYZ;
+  std::array<double, 3> sum_getF; // get forces
+  std::array<double, 3> sum_getXYZ; // get positions
   double maxAbsComponent;
   std::size_t maxIdx;
   int maxDim;  // 0=x,1=y,2=z
   std::size_t nonFinite;
 };
 
-static void zero_all(std::vector<ParticleType> &ps) {
+static void zero_all(std::vector<ParticleType> &ps) { 
+  // for every particle in the particle list set force to zero
   for (auto &p : ps) p.setF(std::array<double, 3>{0.0, 0.0, 0.0});
 }
+
+// Two different ways to compare the forces and the bugs
 
 static ForceSums3D sumAllTwoWays3D(const std::vector<ParticleType> &ps) {
   long double sF[3] = {0.0L, 0.0L, 0.0L};
@@ -165,22 +168,23 @@ static ForceSums3D sumAllTwoWays3D(const std::vector<ParticleType> &ps) {
   int maxDim = -1;
   std::size_t nonFinite = 0;
 
-  for (std::size_t i = 0; i < ps.size(); ++i) {
-    const auto f = ps[i].getF();  // array<3>
-    const double g[3] = {ps[i].getFx(), ps[i].getFy(), ps[i].getFz()};
+  for (std::size_t i = 0; i < ps.size(); ++i) { //  for every particle
+    const auto f = ps[i].getF();  // get force components 
+    const double g[3] = {ps[i].getFx(), ps[i].getFy(), ps[i].getFz()};// in other way get force components seperately
 
     for (int d = 0; d < 3; ++d) {
-      const double fv = f[d];
-      const double gv = g[d];
+      const double fv = f[d]; // force component from getF()
+      const double gv = g[d]; // force component from getFx(), getFy(), getFz()
 
-      if (!std::isfinite(fv) || !std::isfinite(gv)) ++nonFinite;
-
-      sF[d] += fv;
-      sG[d] += gv;
+      if (std::isfinite(fv) == false || std::isfinite(gv) == false) {
+        nonFinite = nonFinite + 1;
+          }
+      sF[d] = sF[d] + fv;
+      sG[d] = sG[d] + gv;
 
       const long double a = std::fabs((long double)fv);
       if (a > maxAbs) {
-        maxAbs = a;
+        maxAbs = a; // a-value is  the max
         maxIdx = i;
         maxDim = d;
       }
@@ -209,9 +213,10 @@ static std::array<double, 3> checksumAbsFxyz(const std::vector<ParticleType> &ps
 }
 
 template <class F>
+// orginal particle list and its reference so that the changes can be kept 
 static long runPairs(std::vector<ParticleType> &ps, F &functor) {
   Timer t;
-  t.start();
+  t.start(); // start the timer
   const std::size_t N = ps.size();
   for(std::size_t iterations = 0; iterations < 1000; iterations++)     
      for (std::size_t i = 0; i < N; ++i)
@@ -252,7 +257,7 @@ static long runPairsSoA(std::vector<ParticleType> &ps, F &functor) {
   Timer t;
   t.start();
   for (std::size_t iter = 0; iter < 1000; ++iter) {
-    std::fill(soa.fx.begin(), soa.fx.end(), 0.0);
+    std::fill(soa.fx.begin(), soa.fx.end(), 0.0); // set zero
     std::fill(soa.fy.begin(), soa.fy.end(), 0.0);
     std::fill(soa.fz.begin(), soa.fz.end(), 0.0);
     functor.SoAFunctor(soa);
@@ -356,28 +361,29 @@ static void verifyAoSvsSoA(const std::string &name,
     std::cout << "  ==> PASS\n";
   }
 }
-
+// start of the main
 int main(int argc, char **argv) {
-  const std::string mode = (argc >= 2) ? argv[1] : "all";
-  const std::size_t N = (argc >= 3) ? static_cast<std::size_t>(std::stoull(argv[2])) : 1000;
+  const std::string mode = (argc >= 2) ? argv[1] : "all"; // for different modes lj, mie, krypton, grav
+  const std::size_t N = (argc >= 3) ? static_cast<std::size_t>(std::stoull(argv[2])) : 1000; // input particle number
 
-  std::vector<ParticleType> ps;
-  ps.reserve(N);
+  std::vector<ParticleType> ps; // particle list
+  ps.reserve(N); // reserve space for N particles
 
-  std::mt19937_64 rng(44);
-  std::uniform_real_distribution<double> U(0.0, 1.0);
-
+  std::mt19937_64 rng(44); // random 
+  std::uniform_real_distribution<double> U(0.0, 10.0); // cube with [0,1]
+//Particles are initialized at uniformly random positions within a
+// unit cube rather than on a regular grid to avoid introducing artificial spatial ordering effects.
   for (std::size_t i = 0; i < N; ++i) {
-    ps.emplace_back(
-        std::array<double, 3>{U(rng), U(rng), U(rng)},
-        std::array<double, 3>{0.0, 0.0, 0.0},
-        std::array<double, 3>{0.0, 0.0, 0.0},
-        static_cast<int>(i),
-        1.0);
+    ps.emplace_back( // place the particle at random position
+        std::array<double, 3>{U(rng), U(rng), U(rng)}, // position
+        std::array<double, 3>{0.0, 0.0, 0.0}, // velocity
+        std::array<double, 3>{0.0, 0.0, 0.0}, // force
+        static_cast<int>(i), // particle id
+        1.0); // mass
   }
 
   // snapshot for verification: same initial positions, clean state
-  const std::vector<ParticleType> ps0 = ps;
+  const std::vector<ParticleType> ps0 = ps; // copy of the original particle list
 
   [[maybe_unused]] auto benchSoA = [&](const std::string &name, auto &functor) {
     std::vector<ParticleType> tmp = ps0;
@@ -402,12 +408,10 @@ int main(int argc, char **argv) {
     std::cout << "\n";
   };
 
-  const double cutoff = 2.5;
+  const double cutoff = 2.0;
   const double sigma = 1.0, epsilon = 1.0;
   const int n = 7, m = 6;
   const double G = 6.67430e-11;
-
-  // IMPORTANT: Newton3 needs to be consistent between AoS and SoA for equality.
   const bool newton3 = false;
 
   if (mode == "lj" || mode == "all") {
@@ -435,28 +439,36 @@ int main(int argc, char **argv) {
     LJFunctor_Gen_O011_SoA<ParticleSoA> lj_o011_soa(sigma, epsilon, newton3, cutoff);
     LJFunctor_Gen_O111_SoA<ParticleSoA> lj_o111_soa(sigma, epsilon, newton3, cutoff);
     
-    // Bench AoS
-    bench("LJ-REF", ref);
-    bench("LJ-REF (without cutoff)", ref_wo);
-    bench("LJ-REF (without cutoff+opt)", ref_wo_opt);
-    bench("LJ-O000 (no opt)", oto000);
-    bench("LJ-O001 (fast_pow)", oto001);
-    bench("LJ-O010 (CSE)", oto010);
-    bench("LJ-O010 (CSE+none)", oto010_none);
-    bench("LJ-O010 (CSE+powsimp)", oto010_powsimp);
-    bench("LJ-O100 (simplify)", oto100);
-    bench("LJ-O101 (simplify+fast_pow)", oto101);
-    bench("LJ-O110 (simplify+CSE)", oto110);
-    bench("LJ-O011 (CSE+fast_pow)", oto011);
-    bench("LJ-O111 (full)", oto111);
-      std::cout << "---------------------------------------\n";
-      std::cout << "without cutoff\n";
+    
+    bench("LJ-REF with cutoff reference",    ref);
+     std::cout << "---------------------------------------\n";
+    bench("LJ-REF without cutoff reference", ref_wo);
+     std::cout << "---------------------------------------\n";
+    bench("LJ-REF without cutoff 0111",      ref_wo_opt);
+     std::cout << "---------------------------------------\n";
+    bench("LJ-O111 with cutoff 0111",        oto111);
+     std::cout << "---------------------------------------\n";
+    bench("LJ-O000 (no opt)",                oto000);
+     std::cout << "---------------------------------------\n";
+    bench("LJ-O001 (fast_pow)",              oto001);
+     std::cout << "---------------------------------------\n";
+    bench("LJ-O010 (CSE)",                   oto010);
+     std::cout << "---------------------------------------\n";
+    bench("LJ-O010 (CSE+none)",              oto010_none);
+     std::cout << "---------------------------------------\n";
+    bench("LJ-O010 (CSE+powsimp)",           oto010_powsimp);
+     std::cout << "---------------------------------------\n";
+    bench("LJ-O100 (simplify)",              oto100);
+     std::cout << "---------------------------------------\n";
+    bench("LJ-O101 (simplify+fast_pow)",     oto101);
+     std::cout << "---------------------------------------\n";
+    bench("LJ-O110 (simplify+CSE)",          oto110);
+     std::cout << "---------------------------------------\n";
+    bench("LJ-O011 (CSE+fast_pow)",          oto011);
+     std::cout << "---------------------------------------\n";
 
-      std::cout << "---------------------------------------\n";
   std::cout << "🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢\n";
 
-    // Bench SoA
-   // benchSoA("LJ-GEN-SOA", ljSoa);
     benchSoA("LJ-REF-SOA (no opt)", ljRefSoa);
     benchSoA("LJ-O000-SOA (no opt)", lj_o000_soa);
     benchSoA("LJ-O001-SOA (fast_pow)", lj_o001_soa);
@@ -495,28 +507,35 @@ int main(int argc, char **argv) {
     MieFunctor_Gen_O110_SoA<ParticleSoA> mie_o110_soa(sigma, epsilon, n, m, false, cutoff);
     MieFunctor_Gen_O011_SoA<ParticleSoA> mie_o011_soa(sigma, epsilon, n, m, false, cutoff);
     MieFunctor_Gen_O111_SoA<ParticleSoA> mie_o111_soa(sigma, epsilon, n, m, false, cutoff);
-
-    // Verify
-    //verifyAoSvsSoA("MIE: REF(AoS) vs GEN(SoA)", ps0, mieRef, mieSoa, 1e-10, 1e-10);
-    //verifyAoSvsSoA("MIE: REF(AoS) vs REF(SoA)", ps0, mieRef, mieRefSoa, 1e-10, 1e-10);
-
-    // Bench AoS
-    bench("MIE-REF", mieRef);
-    bench("MIE-REF (without cutoff)", mieRef_wo);
-    bench("MIE-REF (without cutoff+opt)", mie_wo_opt);
+    
+    bench("MIE-REF with cutoff reference", mieRef);
+    std::cout << "---------------------------------------\n";
+    bench("MIE-REF without cutoff reference", mieRef_wo);
+    std::cout << "---------------------------------------\n";
+    bench("MIE-REF 0111 without cutoff ", mie_wo_opt);
+    std::cout << "---------------------------------------\n";
+    bench("MIE-O111 with cutoff ", mieO111);
+     std::cout << "---------------------------------------\n";
     bench("MIE-O000 (no opt)", mieO000);
+    std::cout << "---------------------------------------\n";
     bench("MIE-O001 (fast_pow)", mieO001);
+    std::cout << "---------------------------------------\n";
     bench("MIE-O010 (CSE)", mieO010);
+    std::cout << "---------------------------------------\n";
     bench("MIE-O010_None (CSE_None)", mieO010_none); 
+    std::cout << "---------------------------------------\n";
     bench("MIE-O010_powsimp (CSE_powsimp)", mieO010_powsimp); 
+    std::cout << "---------------------------------------\n";
     bench("MIE-O100 (simplify)", mieO100);
+    std::cout << "---------------------------------------\n";
     bench("MIE-O101(simplify+fast_pow)", mieO101);
+    std::cout << "---------------------------------------\n";
     bench("MIE-O110 (simplify+CSE)", mieO110);
+    std::cout << "---------------------------------------\n";
     bench("MIE-O011 (CSE+fast_pow)", mieO011);
-    bench("MIE-O111", mieO111);
+   
   std::cout << "🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢\n";
-    // Bench SoA
-    //benchSoA("MIE-GEN-SOA", mieSoa);
+
     benchSoA("MIE-REF-SOA", mieRefSoa);
     benchSoA("MIE-O000-SOA (no opt)", mie_o000_soa);
     benchSoA("MIE-O001-SOA (fast_pow)", mie_o001_soa);
@@ -588,28 +607,36 @@ int main(int argc, char **argv) {
     KryptonFunctorGenerated_Gen_O111_SoA<ParticleSoA> kry_o111_soa(1.213e4, 2.821, -0.748, 0.972, 13.29,
                                                                         64.3, 307.2, 1096.0, false, cutoff);
 
-
-    // Verify (Krypton magnitudes can be larger; rtol matters more)
-   // verifyAoSvsSoA("KRY: REF(AoS) vs GEN(SoA)", ps0, kry_ref, krp_soa, 1e-10, 1e-10);
-   // verifyAoSvsSoA("KRY: REF(AoS) vs REF(SoA)", ps0, kry_ref, kry_ref_soa, 1e-10, 1e-10);
-
-    // Bench AoS
-    bench("KRY-REF", kry_ref);
-    bench("KRY-REF (without cutoff)", kry_ref_wo);
+    bench("KRY-REF with cutoff reference", kry_ref);
+        std::cout << "---------------------------------------\n";
+    bench("KRY-REF without cutoff reference", kry_ref_wo);
+        std::cout << "---------------------------------------\n";
     bench("KRY- full without cutoff", kry_gen_full_opt);
+        std::cout << "---------------------------------------\n";
+    bench("KRY-O111 with cutoff (full)", kry_111);
+       std::cout << "---------------------------------------\n";
     bench("KRY-O000 (no opt)", kry_000);
+        std::cout << "---------------------------------------\n";
     bench("KRY-O001 (fast_pow)", kry_001);
+        std::cout << "---------------------------------------\n";
     bench("KRY-O010 (CSE)", kry_010);
+        std::cout << "---------------------------------------\n";
     bench("KRY-O010 (CSE) none", kry_010_none);
+        std::cout << "---------------------------------------\n";
     bench("KRY-O010 (CSE) powsimp", kry_010_powsimp);
+        std::cout << "---------------------------------------\n";
     bench("KRY-O100 (simplify)", kry_100);
+        std::cout << "---------------------------------------\n";
     bench("KRY-O101(simplify+fast_pow)", kry_101);
+        std::cout << "---------------------------------------\n";
     bench("KRY-O110", kry_110);
+        std::cout << "---------------------------------------\n";
     bench("KRY-O011 (CSE+fast_pow)", kry_011);
-    bench("KRY-O111 (full)", kry_111);
+        std::cout << "---------------------------------------\n";
+
+        std::cout << "---------------------------------------\n";
   std::cout << "🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢\n";
-    // Bench SoA
-   // benchSoA("KRY-GEN-SOA", krp_soa);
+
     benchSoA("KRY-REF-SOA", kry_ref_soa);
     benchSoA("KRY-O000-SOA (no opt)", kry_o000_soa);
     benchSoA("KRY-O001-SOA (fast_pow)", kry_o001_soa);
@@ -653,19 +680,31 @@ int main(int argc, char **argv) {
 
   
     // Bench AoS
-    bench("GRAV-REF", gRef);
-    bench("GRAV-REF (without cutoff)", gRef_wo);
-    bench("GRAV- full without cutoff", gRef_wo_opt);
+    bench("GRAV-REF  with cutoff reference", gRef);
+    std::cout << "---------------------------------------\n";
+    bench("GRAV-REF  without cutoff reference", gRef_wo);
+        std::cout << "---------------------------------------\n";
+    bench("GRAV-0111 without cutoff generated", gRef_wo_opt);
+        std::cout << "---------------------------------------\n";
+    bench("GRAV-O111  with cutoff generated", go111);
+    std::cout << "---------------------------------------\n";
     bench("GRAV-O000 (no opt)", go000);
+        std::cout << "---------------------------------------\n";
     bench("GRAV-O001 (fast_pow)", go001);
+        std::cout << "---------------------------------------\n";
     bench("GRAV-O010 (CSE)", go010);
+        std::cout << "---------------------------------------\n";
     bench("GRAV-O010 (CSE) none", go001_none);
+        std::cout << "---------------------------------------\n";
     bench("GRAV-O010 (CSE) powsimp", go001_powsimp);
+        std::cout << "---------------------------------------\n";
     bench("GRAV-O100 (simplify)", go100);
+        std::cout << "---------------------------------------\n";
     bench("GRAV-O101 (simplify+fast_pow)", go101);
+        std::cout << "---------------------------------------\n";
     bench("GRAV-O110 (simplify+CSE)", go110);
+        std::cout << "---------------------------------------\n";
     bench("GRAV-O011 (CSE+fast_pow)", go011);
-    bench("GRAV-O111 (full)", go111);
   std::cout << "🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢\n";
     // Bench SoA
    // benchSoA("GRAV-GEN-SOA", gravSoa);
