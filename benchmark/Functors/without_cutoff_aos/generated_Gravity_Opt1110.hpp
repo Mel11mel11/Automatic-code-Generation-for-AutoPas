@@ -37,7 +37,6 @@ public:
         const double p2m = p2.getMass();
 
 
-
         const double Fmag = -G*fast_pow(inv_r, 2)*p1m*p2m;
 
         const double fx = Fmag * dx * inv_r;

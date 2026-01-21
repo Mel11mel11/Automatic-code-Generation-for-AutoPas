@@ -36,10 +36,7 @@ public:
         const double sigma = _sigma;
         const double epsilon = _epsilon;
 
-        const double p1m = p1.getMass();
-        const double p2m = p2.getMass();
-
-
+      
 
         const double Fmag = -4*epsilon*(-12*fast_pow(inv_r, 13)*fast_pow(sigma, 12) + 6*fast_pow(inv_r, 7)*fast_pow(sigma, 6));
 

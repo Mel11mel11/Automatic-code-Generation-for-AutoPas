@@ -34,12 +34,6 @@ public:
 
         // Parameter aliases
 
-
-        const double p1m = p1.getMass();
-        const double p2m = p2.getMass();
-
-
-
         const double Fmag = -2/inv_r;
 
         const double fx = Fmag * dx * inv_r;

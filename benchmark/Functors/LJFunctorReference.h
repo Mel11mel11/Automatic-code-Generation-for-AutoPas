@@ -25,7 +25,6 @@ public:
         constexpr double minR2 = 1e-8;
         if (dr2 < minR2) dr2 = minR2;
 
-        // ---- cutoff check (AutoPas style) ----
         if (_cutoff > 0.0) {
             const double cutoff2 = _cutoff * _cutoff;
             if (dr2 > cutoff2) return;
