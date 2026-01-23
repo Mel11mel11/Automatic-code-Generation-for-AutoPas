@@ -84,6 +84,20 @@ class TT(sp.Function):
 
 
 # ---- FastPow printer --------------------------------------------------------
+class StdPowPrinter(CXX11CodePrinter):
+    """
+    Strict printer: always prints Pow(base, exp) as std::pow(base, exp).
+    This guarantees that fast_pow never appears when opt.fast_pow is False.
+    """
+    def _print_Pow(self, expr):
+        base, exp = expr.as_base_exp()
+        return f"std::pow({self._print(base)}, {self._print(exp)})"
+
+
+_stdpow_printer = StdPowPrinter()
+
+def ccode_stdpow(e):
+    return _stdpow_printer.doprint(e)
 
 class FastPowPrinter(CXX11CodePrinter):
     """
@@ -110,22 +124,16 @@ def ccode_fastpow(e):
     return _fastpow_printer.doprint(e)
 
 
+
 def emit_expr(expr, add_dispersion: bool, opt: Optimizations) -> str:
-    """
-    Convert a SymPy expression to C++ code.
-    - If add_dispersion=True (Krypton case), we currently use normal cxxcode.
-    - Otherwise, we choose between fast_pow printer and standard cxxcode.
-    """
     if add_dispersion:
-        # Krypton/dispersion case: keep it simple for now
         return cxxcode(expr)
 
     if opt.fast_pow:
-        # Use custom fast_pow(...) printing for small integer powers
         return ccode_fastpow(expr)
 
-    # Default: SymPy's standard C++ output (std::pow)
-    return cxxcode(expr)
+    # Baseline must be clean: force std::pow for ALL Pow nodes
+    return ccode_stdpow(expr)
 
 
 # ---- TT lowering (mandatory in this version) --------------------------------
@@ -173,6 +181,7 @@ def lower_tt_series(expr):
         "tt_arr[0] = 1.0;",
         "double tt_pow = 1.0;",       # x^k
         "double tt_inv_fact = 1.0;",  # 1/k!
+
         "double tt_sum = 1.0;",       # running sum
         f"for (int k = 1; k <= {nmax}; ++k) {{",
         "  tt_pow *= tt_x;",
@@ -290,14 +299,14 @@ def calculate_force(expr_str, param_names, add_dispersion: bool, opt: Optimizati
 
     # Optional CSE: introduce temporary variables for repeated subexpressions
     if opt.cse:
-        repl, exprs = sp.cse(F, optimizations="None")
+        repl, exprs = sp.cse(F)
         reduced = exprs[0]
     else:
         repl, reduced = [], F
 
     # Convert CSE temporaries into C++ lines
     temp_lines = [
-        f"const double {s} = {fix_exp(emit_expr(rhs, add_dispersion, opt))};"
+        f"const double {s} = {fix_exp(emit_expr(rhs, add_dispersion, opt), opt.fast_pow)};"
         for s, rhs in repl
     ]
 
@@ -308,7 +317,10 @@ def calculate_force(expr_str, param_names, add_dispersion: bool, opt: Optimizati
     temps_code += "\n        ".join(temp_lines)
 
     # Final force expression in C++ form
-    force_expr = fix_exp(emit_expr(reduced, add_dispersion, opt))
+    force_expr = fix_exp(
+    emit_expr(reduced, add_dispersion, opt),
+    opt.fast_pow
+    )
     return temps_code, force_expr
 
 
@@ -339,7 +351,7 @@ def generate_soa(cfg: dict, out_dir: str, opt: Optimizations):
     header_tpl = lookup.get_template("soa_functor.h.mako")
 
     # detect if expression uses masses (gravity)
-    uses_mass = ("p1m" in cfg["expr_str"]) or ("p2m" in cfg["expr_str"])
+    use_mass = ("p1m" in cfg["expr_str"]) or ("p2m" in cfg["expr_str"])
 
     suffix = opt_suffix(opt)
 
@@ -351,7 +363,7 @@ def generate_soa(cfg: dict, out_dir: str, opt: Optimizations):
         "force_expr": force_expr,
         "newton3_default": cfg["newton3_default"],
         "eps_guard": cfg["eps_guard"],
-        "uses_mass": uses_mass,
+        "use_mass": use_mass,
         "cutoff": cutoff_value,
         "cutoff_enabled": cutoff_enabled,
     }
@@ -421,38 +433,44 @@ def main():
 
         add_dispersion = all(k in param_names for k in ["C6", "C8", "C10"])
 
+    # >>> BUNU EKLE <<<
+        use_mass = ("p1m" in cfg["expr_str"]) or ("p2m" in cfg["expr_str"])
+
         for opt in opt_list:
-            suffix = opt_suffix(opt)
-            classname = f"{base_classname}_{suffix}"
+                suffix = opt_suffix(opt)
+                classname = f"{base_classname}_{suffix}"
 
             # get temps + force C++ strings
-            temps, force = calculate_force(cfg["expr_str"], param_names, add_dispersion, opt)
+                temps, force = calculate_force(cfg["expr_str"], param_names, add_dispersion, opt)
 
             # AoS header code generation (no template here, uses emit_header helper)
-            cpp = em.emit_header(
-                classname,
-                temps,
-                force,
-                cfg["newton3_default"],
-                cfg["eps_guard"],
-                param_names,
-                add_dispersion,
-            )
+                cpp = em.emit_header(
+            classname,
+            temps,
+            force,
+            cfg["newton3_default"],
+            cfg["eps_guard"],
+            param_names,
+            add_dispersion,
+            use_fast_pow=opt.fast_pow,
+            use_mass=use_mass 
+)
+
 
             # output filename is based on YAML filename + optimization suffix
-            base, ext = os.path.splitext(cfg["filename"])
-            out_name = f"{base}_{suffix}{ext}"
-            out_path = os.path.join(out_dir, out_name)
+                base, ext = os.path.splitext(cfg["filename"])
+                out_name = f"{base}_{suffix}{ext}"
+                out_path = os.path.join(out_dir, out_name)
 
             # write AoS header to disk
-            with open(out_path, "w") as f:
-                f.write(cpp)
+                with open(out_path, "w") as f:
+                    f.write(cpp)
 
             # optionally also generate SoA header
-            if cfg.get("generate_soa", False):
-                generate_soa(cfg, out_dir, opt)
+                if cfg.get("generate_soa", False):
+                    generate_soa(cfg, out_dir, opt)
 
-            print("[LEVEL-2] Generated:", out_name)
+                print(" Generated:", out_name)
 
 
 if __name__ == "__main__":
