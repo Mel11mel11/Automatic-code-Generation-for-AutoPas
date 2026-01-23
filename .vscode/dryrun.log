@@ -1,4 +1,4 @@
-make --dry-run --keep-going --print-directory
+make --dry-run --always-make --keep-going --print-directory
 make: Entering directory `/Users/melisaaslan/Automatic-code-Generation-for-AutoPas'
 make: Leaving directory `/Users/melisaaslan/Automatic-code-Generation-for-AutoPas'
  

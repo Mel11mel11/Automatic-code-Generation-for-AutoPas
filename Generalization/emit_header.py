@@ -1,8 +1,17 @@
 import textwrap
 
-def emit_header(functorname, temp_calc,force_expr,newton3_default,eps_guard,potential_param,
+def emit_header(
+    functorname,
+    temp_calc,
+    force_expr,
+    newton3_default,
+    eps_guard,
+    potential_param,
     add_dispersion,
+    use_fast_pow, 
+    use_mass         # <-- YENİ
 ):
+
     if potential_param:
         ctor_param_sig = ", ".join(f"double {p}" for p in potential_param) + ", "
     else:
@@ -62,14 +71,21 @@ def emit_header(functorname, temp_calc,force_expr,newton3_default,eps_guard,pote
         """
     else:
         disp_runtime = ""
-
+    fastpow_define = "#define USE_FAST_POW\n" if use_fast_pow else ""
+    mass_define = "#define USE_MASS\n" if use_mass else ""
     body = f"""
 #pragma once
+{fastpow_define}
+{mass_define}
 #include "../Functors/Functor.h"
 #include "../Particle.h"
 #include <cmath>
 #include <array>
+
+#ifdef USE_FAST_POW
 #include "FastPow.hpp"
+#endif
+
 
 template <class Particle_T>
 class {functorname} : public Functor<Particle_T> {{
@@ -100,8 +116,11 @@ public:
         // Parameter aliases
         {local_aliases}
 
+        #ifdef USE_MASS
         const double p1m = p1.getMass();
         const double p2m = p2.getMass();
+        #endif
+
 
 {("        " +  temp_calc) if  temp_calc else ""}
 
