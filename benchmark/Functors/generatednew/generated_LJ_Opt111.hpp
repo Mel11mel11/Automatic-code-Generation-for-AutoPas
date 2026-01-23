@@ -49,9 +49,9 @@ public:
         #endif
 
 
-        const double x0 = fast_pow(sigma, 6);
+        const double x0 = std::pow(sigma, 6);
 
-        const double Fmag = 24*epsilon*fast_pow(inv_r, 7)*x0*(2*fast_pow(inv_r, 6)*x0 - 1);
+        const double Fmag = 24*epsilon*std::pow(inv_r, 7)*x0*(2*std::pow(inv_r, 6)*x0 - 1);
 
         const double fx = Fmag * dx * inv_r;
         const double fy = Fmag * dy * inv_r;

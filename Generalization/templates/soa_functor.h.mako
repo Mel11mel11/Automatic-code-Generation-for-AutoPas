@@ -42,7 +42,7 @@ public:
         double * __restrict__ fy = soa.fy.data();
         double * __restrict__ fz = soa.fz.data();
 
-% if uses_mass:
+% if use_mass:
         double * __restrict__ mass = soa.mass.data();
 % endif
 
@@ -71,7 +71,7 @@ public:
             const double yi = y[i];
             const double zi = z[i];
 
-% if uses_mass:
+% if use_mass:
             const double p1m = mass[i];
 % endif
 
@@ -92,7 +92,7 @@ public:
                 const double r = std::sqrt(r2);
                 const double inv_r = 1.0 / r;
 
-% if uses_mass:
+% if use_mass:
                 const double p2m = mass[j];
 % endif
 

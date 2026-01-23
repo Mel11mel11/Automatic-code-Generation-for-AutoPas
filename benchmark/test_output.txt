@@ -1,10 +1,10 @@
 Newton3 = 0
 
 === Lennard-Jones ===
-max|ΔF|      = 3.55271e-15
+max|ΔF|      = 2.66454e-15
 max|F_ref|   = 5.5933
-relative err = 6.35173e-16
-RELERR 6.35173e-16
+relative err = 4.76379e-16
+RELERR 4.76379e-16
 
 === Mie Potential ===
 max|ΔF|      = 1.77636e-15

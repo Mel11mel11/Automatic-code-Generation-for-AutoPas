@@ -32,15 +32,12 @@ def replace_pow(expression: str) -> str:
     out = re.sub(r'\bpow\s*\(', 'std::pow(', out)
     return out
 
-def fix_exp(expr: str, use_fast_pow: bool, funcs: Iterable[str] = FUNCS) -> str:
+def fix_exp(expr: str, funcs: Iterable[str] = FUNCS) -> str:
     out = expr
 
-    if use_fast_pow:
-        out = replace_pow(out)
-    else:
     
-        out = re.sub(r'\bfast_pow\s*\(', 'std::pow(', out)
-        out = re.sub(r'\bpow\s*\(', 'std::pow(', out)
+    out = re.sub(r'\bfast_pow\s*\(', 'std::pow(', out)
+    out = re.sub(r'\bpow\s*\(', 'std::pow(', out)
 
     for fn in funcs:
         if fn == "pow":
@@ -49,4 +46,5 @@ def fix_exp(expr: str, use_fast_pow: bool, funcs: Iterable[str] = FUNCS) -> str:
 
     out = re.sub(r'\bstd::\s*std::', 'std::', out)
     return out
+
 
