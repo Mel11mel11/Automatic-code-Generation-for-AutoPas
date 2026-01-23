@@ -8,16 +8,16 @@
 
 // Functors
 #include "../Functors/LJFunctorReference.h"
-#include "../Functors/generatednew /generated_LJ_O000.hpp"
+#include "../Functors/generatednew/generated_LJ_Opt000.hpp"
 
 #include "../Functors/MieFunctorReference.h"
-#include "../Functors/generatednew /generated_Mie_O000.hpp"
+#include "../Functors/generatednew/generated_Mie_Opt000.hpp"
 
 #include "../Functors/GravFunctorReference.h"
-#include "../Functors/generatednew /generated_Gravity_O000.hpp"
+#include "../Functors/generatednew/generated_Gravity_Opt000.hpp"
 
 #include "../Functors/KryptonFunctorReference.h"
-#include "../Functors/generatednew /generated_Krypton_O000.hpp"
+#include "../Functors/generatednew/generated_Krypton_Opt000.hpp"
 
 
 std::vector<Particle> makeGrid(int N, double spacing) {
@@ -127,23 +127,23 @@ int main() {
 
     // Lennard-Jones
     LJFunctorReference<Particle> ljR(sigma,epsilon,newton3,cutoff);
-    LJFunctor_Gen_O000<Particle> ljG(sigma,epsilon,newton3,cutoff);
+     LJFunctor_Gen_Opt000<Particle> ljG(sigma,epsilon,newton3,cutoff);
     
     testPotential("Lennard-Jones", ljR, ljG, N, spacing);
 
     // Mie
     MieFunctorReference<Particle> mieR(sigma,epsilon,n,m,newton3,cutoff);
-    MieFunctor_Gen_O000<Particle> mieG(sigma,epsilon,n,m,newton3,cutoff);
+    MieFunctor_Gen_Opt000<Particle> mieG(sigma,epsilon,n,m,newton3,cutoff);
     testPotential("Mie Potential", mieR, mieG, N, spacing);
 
     // Gravity
     GravFunctorReference<Particle> grR(G,newton3);
-    GravityFunctor_Gen_O000<Particle> grG(G,newton3);
+    GravityFunctor_Gen_Opt000<Particle> grG(G,newton3);
     testPotential("Gravity", grR, grG, N, spacing);
 
     // Krypton
     KryptonFunctorReference<Particle> kR(A,a1,a2,a_m1,b,C6,C8,C10,newton3,cutoff);
-    KryptonFunctorGenerated_Gen_O000<Particle> kG(A,a1,a2,a_m1,b,C6,C8,C10,newton3,cutoff);
+    KryptonFunctorGenerated_Gen_Opt000<Particle> kG(A,a1,a2,a_m1,b,C6,C8,C10,newton3,cutoff);
     testPotential("Krypton", kR, kG, N, spacing);
 
     return 0;

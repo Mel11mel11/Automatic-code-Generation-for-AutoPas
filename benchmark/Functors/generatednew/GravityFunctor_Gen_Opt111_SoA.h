@@ -31,6 +31,7 @@ public:
         double * __restrict__ fy = soa.fy.data();
         double * __restrict__ fz = soa.fz.data();
 
+        double * __restrict__ mass = soa.mass.data();
 
         const std::size_t N = soa.size();
         constexpr double EPS = 1e-24;
@@ -52,6 +53,7 @@ public:
             const double yi = y[i];
             const double zi = z[i];
 
+            const double p1m = mass[i];
 
             for (std::size_t j = i + 1; j < N; ++j) {
 
@@ -68,10 +70,11 @@ public:
                 const double r = std::sqrt(r2);
                 const double inv_r = 1.0 / r;
 
+                const double p2m = mass[j];
 
 
                 // Contract: Fmag == fr == -dU/dr (scalar)
-                const double Fmag = -G*fast_pow(inv_r, 2)*p1m*p2m;
+                const double Fmag = -G*std::pow(inv_r, 2)*p1m*p2m;
 
                 // Convert to vector: F_vec = fr * r_vec / r
                 const double Fx = Fmag * dx * inv_r;

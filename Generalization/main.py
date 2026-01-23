@@ -132,11 +132,9 @@ def emit_expr(expr, add_dispersion: bool, opt: Optimizations) -> str:
     if opt.fast_pow:
         return ccode_fastpow(expr)
 
-    # Baseline must be clean: force std::pow for ALL Pow nodes
     return ccode_stdpow(expr)
 
 
-# ---- TT lowering (mandatory in this version) --------------------------------
 
 def lower_tt_series(expr):
     """
@@ -225,7 +223,11 @@ def compute_dispersion_coeffs_sympy():
 #     """
 #     expr = sp.powsimp(expr, force=True)
 #     expr = sp.factor_terms(expr)
-#     return expr
+def detect_use_mass(cfg: dict) -> bool:
+    # Gravity model: masses are mandatory (p1m, p2m)
+    # LJ/Mie/Krypton: no masses
+    name = (cfg.get("classname") or "").lower()
+    return name.startswith("gravity")
 
 
 # ---- r -> inv_r elimination -------------------------------------------------
@@ -299,14 +301,14 @@ def calculate_force(expr_str, param_names, add_dispersion: bool, opt: Optimizati
 
     # Optional CSE: introduce temporary variables for repeated subexpressions
     if opt.cse:
-        repl, exprs = sp.cse(F)
+        repl, exprs = sp.cse(F, optimizations="basic")
         reduced = exprs[0]
     else:
         repl, reduced = [], F
 
     # Convert CSE temporaries into C++ lines
     temp_lines = [
-        f"const double {s} = {fix_exp(emit_expr(rhs, add_dispersion, opt), opt.fast_pow)};"
+        f"const double {s} = {fix_exp(emit_expr(rhs, add_dispersion, opt))};"
         for s, rhs in repl
     ]
 
@@ -317,10 +319,7 @@ def calculate_force(expr_str, param_names, add_dispersion: bool, opt: Optimizati
     temps_code += "\n        ".join(temp_lines)
 
     # Final force expression in C++ form
-    force_expr = fix_exp(
-    emit_expr(reduced, add_dispersion, opt),
-    opt.fast_pow
-    )
+    force_expr = fix_exp(emit_expr(reduced, add_dispersion, opt))
     return temps_code, force_expr
 
 
@@ -351,7 +350,7 @@ def generate_soa(cfg: dict, out_dir: str, opt: Optimizations):
     header_tpl = lookup.get_template("soa_functor.h.mako")
 
     # detect if expression uses masses (gravity)
-    use_mass = ("p1m" in cfg["expr_str"]) or ("p2m" in cfg["expr_str"])
+    use_mass = detect_use_mass(cfg)
 
     suffix = opt_suffix(opt)
 
@@ -434,7 +433,7 @@ def main():
         add_dispersion = all(k in param_names for k in ["C6", "C8", "C10"])
 
     # >>> BUNU EKLE <<<
-        use_mass = ("p1m" in cfg["expr_str"]) or ("p2m" in cfg["expr_str"])
+        use_mass = use_mass = detect_use_mass(cfg)
 
         for opt in opt_list:
                 suffix = opt_suffix(opt)

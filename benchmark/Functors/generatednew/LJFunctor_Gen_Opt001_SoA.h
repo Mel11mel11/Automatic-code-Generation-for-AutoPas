@@ -74,7 +74,7 @@ public:
 
 
                 // Contract: Fmag == fr == -dU/dr (scalar)
-                const double Fmag = -4*epsilon*(-12*fast_pow(inv_r, 13)*fast_pow(sigma, 12) + 6*fast_pow(inv_r, 7)*fast_pow(sigma, 6));
+                const double Fmag = -4*epsilon*(-12*std::pow(inv_r, 13)*std::pow(sigma, 12) + 6*std::pow(inv_r, 7)*std::pow(sigma, 6));
 
                 // Convert to vector: F_vec = fr * r_vec / r
                 const double Fx = Fmag * dx * inv_r;

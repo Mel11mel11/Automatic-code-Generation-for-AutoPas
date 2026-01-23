@@ -9,39 +9,37 @@
 #include "Functors/Soa/GravityFunctor_Ref_SoA.h"
 #include "Functors/Soa/LJFunctor_Ref_SoA.h"
 //========================LENNARD JONES OPT variations ==========================
-#include "Functors/generatednew /generated_LJ_O000.hpp"
-#include "Functors/generatednew /generated_LJ_O001.hpp"
-#include "Functors/generatednew /generated_LJ_O010.hpp"
-#include "Functors/generatednew /generated_LJ_O100.hpp"
-#include "Functors/generatednew /generated_LJ_O101.hpp"
-#include "Functors/generatednew /generated_LJ_O011.hpp"
-#include "Functors/generatednew /generated_LJ_O110.hpp"
-#include "Functors/generatednew /generated_LJ_O111.hpp"
+#include "Functors/generatednew/generated_LJ_Opt000.hpp"
+#include "Functors/generatednew/generated_LJ_Opt001.hpp"
+#include "Functors/generatednew/generated_LJ_Opt010.hpp"
+#include "Functors/generatednew/generated_LJ_Opt100.hpp"
+#include "Functors/generatednew/generated_LJ_Opt101.hpp"
+#include "Functors/generatednew/generated_LJ_Opt011.hpp"
+#include "Functors/generatednew/generated_LJ_Opt110.hpp"
+#include "Functors/generatednew/generated_LJ_Opt111.hpp"
 //-------------------------CUTOFF--------------------------------
 #include "Functors/without_cutoff/LJRef_wo_cutoff.h"
 #include "Functors/without_cutoff_aos/LJFunctor_Gen_Opt1110.hpp"
-//-------------------------CSE Optimization variants--------------
-#include "Functors/new_None/generated_LJ_Opt010.hpp"
-#include "Functors/cse_3/generated_LJ_Opt010.hpp"
+
 // ----------------------SoA----------------------------
-#include "Functors/generatednew /LJFunctor_Gen_O000_SoA.h"
-#include "Functors/generatednew /LJFunctor_Gen_O001_SoA.h"
-#include "Functors/generatednew /LJFunctor_Gen_O010_SoA.h"
-#include "Functors/generatednew /LJFunctor_Gen_O011_SoA.h"
-#include "Functors/generatednew /LJFunctor_Gen_O100_SoA.h"
-#include "Functors/generatednew /LJFunctor_Gen_O101_SoA.h"
-#include "Functors/generatednew /LJFunctor_Gen_O110_SoA.h"
-#include "Functors/generatednew /LJFunctor_Gen_O111_SoA.h"
+#include "Functors/generatednew/LJFunctor_Gen_Opt000_SoA.h"
+#include "Functors/generatednew/LJFunctor_Gen_Opt001_SoA.h"
+#include "Functors/generatednew/LJFunctor_Gen_Opt010_SoA.h"
+#include "Functors/generatednew/LJFunctor_Gen_Opt011_SoA.h"
+#include "Functors/generatednew/LJFunctor_Gen_Opt100_SoA.h"
+#include "Functors/generatednew/LJFunctor_Gen_Opt101_SoA.h"
+#include "Functors/generatednew/LJFunctor_Gen_Opt110_SoA.h"
+#include "Functors/generatednew/LJFunctor_Gen_Opt111_SoA.h"
 //------------------------------------------------------
 //========================GRAVITY OPT variations ==========================
-#include "Functors/generatednew /generated_Gravity_O000.hpp"
-#include "Functors/generatednew /generated_Gravity_O001.hpp"
-#include "Functors/generatednew /generated_Gravity_O010.hpp"
-#include "Functors/generatednew /generated_Gravity_O100.hpp"
-#include "Functors/generatednew /generated_Gravity_O101.hpp"
-#include "Functors/generatednew /generated_Gravity_O110.hpp"
-#include "Functors/generatednew /generated_Gravity_O011.hpp"
-#include "Functors/generatednew /generated_Gravity_O111.hpp"
+#include "Functors/generatednew/generated_Gravity_Opt000.hpp"
+#include "Functors/generatednew/generated_Gravity_Opt001.hpp"
+#include "Functors/generatednew/generated_Gravity_Opt010.hpp"
+#include "Functors/generatednew/generated_Gravity_Opt100.hpp"
+#include "Functors/generatednew/generated_Gravity_Opt101.hpp"
+#include "Functors/generatednew/generated_Gravity_Opt110.hpp"
+#include "Functors/generatednew/generated_Gravity_Opt011.hpp"
+#include "Functors/generatednew/generated_Gravity_Opt111.hpp"
 //-------------------------CUTOFF--------------------------------
 #include "Functors/without_cutoff/GravRef_wo_cutoff.h"
 #include "Functors/without_cutoff_aos/generated_Gravity_Opt1110.hpp"
@@ -49,24 +47,24 @@
 #include "Functors/new_None/generated_Gravity_Opt010.hpp"
 #include "Functors/cse_3/generated_Gravity_Opt010.hpp"
 //---------------------SoA--------------------------------
-#include "Functors/generatednew /GravityFunctor_Gen_O000_SoA.h"
-#include "Functors/generatednew /GravityFunctor_Gen_O001_SoA.h"
-#include "Functors/generatednew /GravityFunctor_Gen_O010_SoA.h"
-#include "Functors/generatednew /GravityFunctor_Gen_O011_SoA.h"
-#include "Functors/generatednew /GravityFunctor_Gen_O100_SoA.h"
-#include "Functors/generatednew /GravityFunctor_Gen_O101_SoA.h"
-#include "Functors/generatednew /GravityFunctor_Gen_O110_SoA.h"
-#include "Functors/generatednew /GravityFunctor_Gen_O111_SoA.h"
+#include "Functors/generatednew/GravityFunctor_Gen_Opt000_SoA.h"
+#include "Functors/generatednew/GravityFunctor_Gen_Opt001_SoA.h"
+#include "Functors/generatednew/GravityFunctor_Gen_Opt010_SoA.h"
+#include "Functors/generatednew/GravityFunctor_Gen_Opt011_SoA.h"
+#include "Functors/generatednew/GravityFunctor_Gen_Opt100_SoA.h"
+#include "Functors/generatednew/GravityFunctor_Gen_Opt101_SoA.h"
+#include "Functors/generatednew/GravityFunctor_Gen_Opt110_SoA.h"
+#include "Functors/generatednew/GravityFunctor_Gen_Opt111_SoA.h"
 //----------------------------------------------------------
 //========================MIE OPT variations ==========================
-#include "Functors/generatednew /generated_Mie_O000.hpp"
-#include "Functors/generatednew /generated_Mie_O001.hpp"
-#include "Functors/generatednew /generated_Mie_O010.hpp"
-#include "Functors/generatednew /generated_Mie_O100.hpp"
-#include "Functors/generatednew /generated_Mie_O101.hpp"
-#include "Functors/generatednew /generated_Mie_O110.hpp"
-#include "Functors/generatednew /generated_Mie_O011.hpp"
-#include "Functors/generatednew /generated_Mie_O111.hpp"
+#include "Functors/generatednew/generated_Mie_Opt000.hpp"
+#include "Functors/generatednew/generated_Mie_Opt001.hpp"
+#include "Functors/generatednew/generated_Mie_Opt010.hpp"
+#include "Functors/generatednew/generated_Mie_Opt100.hpp"
+#include "Functors/generatednew/generated_Mie_Opt101.hpp"
+#include "Functors/generatednew/generated_Mie_Opt110.hpp"
+#include "Functors/generatednew/generated_Mie_Opt011.hpp"
+#include "Functors/generatednew/generated_Mie_Opt111.hpp"
 //-------------------------CUTOFF--------------------------------
 #include "Functors/without_cutoff/MieRef_wo_cutoff.h"
 #include "Functors/without_cutoff_aos/MieFunctor_Gen_Opt1110.hpp"
@@ -74,23 +72,23 @@
 #include "Functors/new_None/generated_Mie_Opt010.hpp"
 #include "Functors/cse_3/generated_Mie_Opt010.hpp"
 
-#include "Functors/generatednew /MieFunctor_Gen_O000_SoA.h" 
-#include "Functors/generatednew /MieFunctor_Gen_O001_SoA.h"
-#include "Functors/generatednew /MieFunctor_Gen_O010_SoA.h"
-#include "Functors/generatednew /MieFunctor_Gen_O011_SoA.h"
-#include "Functors/generatednew /MieFunctor_Gen_O100_SoA.h"
-#include "Functors/generatednew /MieFunctor_Gen_O101_SoA.h"
-#include "Functors/generatednew /MieFunctor_Gen_O110_SoA.h"
-#include "Functors/generatednew /MieFunctor_Gen_O111_SoA.h"
+#include "Functors/generatednew/MieFunctor_Gen_Opt000_SoA.h" 
+#include "Functors/generatednew/MieFunctor_Gen_Opt001_SoA.h"
+#include "Functors/generatednew/MieFunctor_Gen_Opt010_SoA.h"
+#include "Functors/generatednew/MieFunctor_Gen_Opt011_SoA.h"
+#include "Functors/generatednew/MieFunctor_Gen_Opt100_SoA.h"
+#include "Functors/generatednew/MieFunctor_Gen_Opt101_SoA.h"
+#include "Functors/generatednew/MieFunctor_Gen_Opt110_SoA.h"
+#include "Functors/generatednew/MieFunctor_Gen_Opt111_SoA.h"
 //========================KRYPTON OPT variations==========================
-#include "Functors/generatednew /generated_Krypton_O000.hpp"
-#include "Functors/generatednew /generated_Krypton_O001.hpp"
-#include "Functors/generatednew /generated_Krypton_O010.hpp"
-#include "Functors/generatednew /generated_Krypton_O100.hpp"
-#include "Functors/generatednew /generated_Krypton_O101.hpp"
-#include "Functors/generatednew /generated_Krypton_O110.hpp"
-#include "Functors/generatednew /generated_Krypton_O011.hpp"
-#include "Functors/generatednew /generated_Krypton_O111.hpp"
+#include "Functors/generatednew/generated_Krypton_Opt000.hpp"
+#include "Functors/generatednew/generated_Krypton_Opt001.hpp"
+#include "Functors/generatednew/generated_Krypton_Opt010.hpp"
+#include "Functors/generatednew/generated_Krypton_Opt100.hpp"
+#include "Functors/generatednew/generated_Krypton_Opt101.hpp"
+#include "Functors/generatednew/generated_Krypton_Opt110.hpp"
+#include "Functors/generatednew/generated_Krypton_Opt011.hpp"
+#include "Functors/generatednew/generated_Krypton_Opt111.hpp"
 //-------------------------CUTOFF--------------------------------
 #include "Functors/without_cutoff/KryptonRef_wo_cutoff.h"
 #include "Functors/without_cutoff_aos/generated_Krypton_Opt1110.hpp"
@@ -99,14 +97,14 @@
 #include "Functors/cse_3/generated_Krypton_Opt010.hpp"
 #include "Functors/Soa/KryptonFunctor_Ref_SoA.h"
 #include "Functors/Soa/KryptonFunctorGenerated_Gen_SoA.h"
-#include "Functors/generatednew /KryptonFunctorGenerated_Gen_O000_SoA.h"
-#include "Functors/generatednew /KryptonFunctorGenerated_Gen_O001_SoA.h"
-#include "Functors/generatednew /KryptonFunctorGenerated_Gen_O010_SoA.h"
-#include "Functors/generatednew /KryptonFunctorGenerated_Gen_O011_SoA.h"
-#include "Functors/generatednew /KryptonFunctorGenerated_Gen_O100_SoA.h"
-#include "Functors/generatednew /KryptonFunctorGenerated_Gen_O101_SoA.h"
-#include "Functors/generatednew /KryptonFunctorGenerated_Gen_O110_SoA.h"
-#include "Functors/generatednew /KryptonFunctorGenerated_Gen_O111_SoA.h"
+#include "Functors/generatednew/KryptonFunctorGenerated_Gen_Opt000_SoA.h"
+#include "Functors/generatednew/KryptonFunctorGenerated_Gen_Opt001_SoA.h"
+#include "Functors/generatednew/KryptonFunctorGenerated_Gen_Opt010_SoA.h"
+#include "Functors/generatednew/KryptonFunctorGenerated_Gen_Opt011_SoA.h"
+#include "Functors/generatednew/KryptonFunctorGenerated_Gen_Opt100_SoA.h"
+#include "Functors/generatednew/KryptonFunctorGenerated_Gen_Opt101_SoA.h"
+#include "Functors/generatednew/KryptonFunctorGenerated_Gen_Opt110_SoA.h"
+#include "Functors/generatednew/KryptonFunctorGenerated_Gen_Opt111_SoA.h"
 
 //=============== main Libraries and imports ============================
 #include <vector>
@@ -410,7 +408,7 @@ int main(int argc, char **argv) {
 
   const double cutoff = 2.0;
   const double sigma = 1.0, epsilon = 1.0;
-  const int n = 7, m = 6;
+  const int n = 10, m = 6;
   const double G = 6.67430e-11;
   const bool newton3 = false;
 
@@ -418,26 +416,25 @@ int main(int argc, char **argv) {
     LJFunctorReference<ParticleType> ref(sigma, epsilon, newton3, cutoff);
     LJFunctorReference_wo_cutoff<ParticleType> ref_wo(sigma, epsilon, newton3);
     LJFunctor_Gen_Opt1110_without<ParticleType> ref_wo_opt(sigma, epsilon, newton3);
-    LJFunctor_Gen_O000<ParticleType> oto000(sigma, epsilon, newton3, cutoff);
-    LJFunctor_Gen_O001<ParticleType> oto001(sigma, epsilon, newton3, cutoff);
-    LJFunctor_Gen_O010<ParticleType> oto010(sigma, epsilon, newton3, cutoff);
-    LJFunctor_Gen_Opt010_None <ParticleType> oto010_none(sigma, epsilon, newton3, cutoff);
-    LJFunctor_Gen_O100<ParticleType> oto100(sigma, epsilon, newton3, cutoff);
-    LJFunctor_Gen_O101<ParticleType> oto101(sigma, epsilon, newton3, cutoff);
-    LJFunctor_Gen_O110<ParticleType> oto110(sigma, epsilon, newton3, cutoff);
-    LJFunctor_Gen_O011<ParticleType> oto011(sigma, epsilon, newton3, cutoff);
-    LJFunctor_Gen_O111<ParticleType> oto111(sigma, epsilon, newton3, cutoff);
-    LJFunctor_Gen_Opt010_powsimp<ParticleType> oto010_powsimp(sigma, epsilon, newton3, cutoff);
+    LJFunctor_Gen_Opt000<ParticleType> oto000(sigma, epsilon, newton3, cutoff);
+    LJFunctor_Gen_Opt001<ParticleType> oto001(sigma, epsilon, newton3, cutoff);
+    LJFunctor_Gen_Opt010<ParticleType> oto010(sigma, epsilon, newton3, cutoff);
+    LJFunctor_Gen_Opt100<ParticleType> oto100(sigma, epsilon, newton3, cutoff);
+    LJFunctor_Gen_Opt101<ParticleType> oto101(sigma, epsilon, newton3, cutoff);
+    LJFunctor_Gen_Opt110<ParticleType> oto110(sigma, epsilon, newton3, cutoff);
+    LJFunctor_Gen_Opt011<ParticleType> oto011(sigma, epsilon, newton3, cutoff);
+    LJFunctor_Gen_Opt111<ParticleType> oto111(sigma, epsilon, newton3, cutoff);
+  
 
     LJFunctor_Ref_SoA<ParticleSoA> ljRefSoa(sigma, epsilon, newton3, cutoff);
-    LJFunctor_Gen_O000_SoA<ParticleSoA> lj_o000_soa(sigma, epsilon, newton3, cutoff);
-    LJFunctor_Gen_O001_SoA<ParticleSoA> lj_o001_soa(sigma, epsilon, newton3, cutoff);
-    LJFunctor_Gen_O010_SoA<ParticleSoA> lj_o010_soa(sigma, epsilon, newton3, cutoff);
-    LJFunctor_Gen_O100_SoA<ParticleSoA> lj_o100_soa(sigma, epsilon, newton3, cutoff);
-    LJFunctor_Gen_O101_SoA<ParticleSoA> lj_o101_soa(sigma, epsilon, newton3, cutoff);
-    LJFunctor_Gen_O110_SoA<ParticleSoA> lj_o110_soa(sigma, epsilon, newton3, cutoff);
-    LJFunctor_Gen_O011_SoA<ParticleSoA> lj_o011_soa(sigma, epsilon, newton3, cutoff);
-    LJFunctor_Gen_O111_SoA<ParticleSoA> lj_o111_soa(sigma, epsilon, newton3, cutoff);
+    LJFunctor_Gen_Opt000_SoA<ParticleSoA> lj_o000_soa(sigma, epsilon, newton3, cutoff);
+    LJFunctor_Gen_Opt001_SoA<ParticleSoA> lj_o001_soa(sigma, epsilon, newton3, cutoff);
+    LJFunctor_Gen_Opt010_SoA<ParticleSoA> lj_o010_soa(sigma, epsilon, newton3, cutoff);
+    LJFunctor_Gen_Opt100_SoA<ParticleSoA> lj_o100_soa(sigma, epsilon, newton3, cutoff);
+    LJFunctor_Gen_Opt101_SoA<ParticleSoA> lj_o101_soa(sigma, epsilon, newton3, cutoff);
+    LJFunctor_Gen_Opt110_SoA<ParticleSoA> lj_o110_soa(sigma, epsilon, newton3, cutoff);
+    LJFunctor_Gen_Opt011_SoA<ParticleSoA> lj_o011_soa(sigma, epsilon, newton3, cutoff);
+    LJFunctor_Gen_Opt111_SoA<ParticleSoA> lj_o111_soa(sigma, epsilon, newton3, cutoff);
     
     
     bench("LJ-REF with cutoff reference",    ref);
@@ -453,10 +450,6 @@ int main(int argc, char **argv) {
     bench("LJ-O001 (fast_pow)",              oto001);
      std::cout << "---------------------------------------\n";
     bench("LJ-O010 (CSE)",                   oto010);
-     std::cout << "---------------------------------------\n";
-    bench("LJ-O010 (CSE+none)",              oto010_none);
-     std::cout << "---------------------------------------\n";
-    bench("LJ-O010 (CSE+powsimp)",           oto010_powsimp);
      std::cout << "---------------------------------------\n";
     bench("LJ-O100 (simplify)",              oto100);
      std::cout << "---------------------------------------\n";
@@ -486,27 +479,26 @@ int main(int argc, char **argv) {
   if (mode == "mie" || mode == "all") {
     MieFunctorReference<ParticleType> mieRef(sigma, epsilon, n, m, false, cutoff);
     MieFunctorReference_wo_cutoff<ParticleType> mieRef_wo(sigma, epsilon, n, m, false);
-    MieFunctor_Gen_O000<ParticleType> mieO000(sigma, epsilon, n, m, false, cutoff);
-    MieFunctor_Gen_O001<ParticleType> mieO001(sigma, epsilon, n, m, false, cutoff);
-    MieFunctor_Gen_O010<ParticleType> mieO010(sigma, epsilon, n, m, false, cutoff);
-    MieFunctor_Gen_Opt010_None<ParticleType> mieO010_none(sigma, epsilon, n, m, false, cutoff);
-    MieFunctor_Gen_O100<ParticleType> mieO100(sigma, epsilon, n, m, false, cutoff);
-    MieFunctor_Gen_O101<ParticleType> mieO101(sigma, epsilon, n, m, false, cutoff);
-    MieFunctor_Gen_O110<ParticleType> mieO110(sigma, epsilon, n, m, false, cutoff);
-    MieFunctor_Gen_O011<ParticleType> mieO011(sigma, epsilon, n, m, false, cutoff);
-    MieFunctor_Gen_O111<ParticleType> mieO111(sigma, epsilon, n, m, false, cutoff);
-    MieFunctor_Gen_Opt010_powsimp<ParticleType> mieO010_powsimp(sigma, epsilon, n, m, false, cutoff);
+    MieFunctor_Gen_Opt000<ParticleType> mieO000(sigma, epsilon, n, m, false, cutoff);
+    MieFunctor_Gen_Opt001<ParticleType> mieO001(sigma, epsilon, n, m, false, cutoff);
+    MieFunctor_Gen_Opt010<ParticleType> mieO010(sigma, epsilon, n, m, false, cutoff);
+    MieFunctor_Gen_Opt100<ParticleType> mieO100(sigma, epsilon, n, m, false, cutoff);
+    MieFunctor_Gen_Opt101<ParticleType> mieO101(sigma, epsilon, n, m, false, cutoff);
+    MieFunctor_Gen_Opt110<ParticleType> mieO110(sigma, epsilon, n, m, false, cutoff);
+    MieFunctor_Gen_Opt011<ParticleType> mieO011(sigma, epsilon, n, m, false, cutoff);
+    MieFunctor_Gen_Opt111<ParticleType> mieO111(sigma, epsilon, n, m, false, cutoff);
+  
 
     MieFunctor_Ref_SoA<ParticleSoA> mieRefSoa(sigma, epsilon, n, m, false, cutoff);
     MieFunctor_Gen_Opt1110_without<ParticleType> mie_wo_opt(sigma, epsilon, n, m, false);
-    MieFunctor_Gen_O000_SoA<ParticleSoA> mie_o000_soa(sigma, epsilon, n, m, false, cutoff);
-    MieFunctor_Gen_O001_SoA<ParticleSoA> mie_o001_soa(sigma, epsilon, n, m, false, cutoff);
-    MieFunctor_Gen_O010_SoA<ParticleSoA> mie_o010_soa(sigma, epsilon, n, m, false, cutoff);
-    MieFunctor_Gen_O100_SoA<ParticleSoA> mie_o100_soa(sigma, epsilon, n, m, false, cutoff);
-    MieFunctor_Gen_O101_SoA<ParticleSoA> mie_o101_soa(sigma, epsilon, n, m, false, cutoff);
-    MieFunctor_Gen_O110_SoA<ParticleSoA> mie_o110_soa(sigma, epsilon, n, m, false, cutoff);
-    MieFunctor_Gen_O011_SoA<ParticleSoA> mie_o011_soa(sigma, epsilon, n, m, false, cutoff);
-    MieFunctor_Gen_O111_SoA<ParticleSoA> mie_o111_soa(sigma, epsilon, n, m, false, cutoff);
+    MieFunctor_Gen_Opt000_SoA<ParticleSoA> mie_o000_soa(sigma, epsilon, n, m, false, cutoff);
+    MieFunctor_Gen_Opt001_SoA<ParticleSoA> mie_o001_soa(sigma, epsilon, n, m, false, cutoff);
+    MieFunctor_Gen_Opt010_SoA<ParticleSoA> mie_o010_soa(sigma, epsilon, n, m, false, cutoff);
+    MieFunctor_Gen_Opt100_SoA<ParticleSoA> mie_o100_soa(sigma, epsilon, n, m, false, cutoff);
+    MieFunctor_Gen_Opt101_SoA<ParticleSoA> mie_o101_soa(sigma, epsilon, n, m, false, cutoff);
+    MieFunctor_Gen_Opt110_SoA<ParticleSoA> mie_o110_soa(sigma, epsilon, n, m, false, cutoff);
+    MieFunctor_Gen_Opt011_SoA<ParticleSoA> mie_o011_soa(sigma, epsilon, n, m, false, cutoff);
+    MieFunctor_Gen_Opt111_SoA<ParticleSoA> mie_o111_soa(sigma, epsilon, n, m, false, cutoff);
     
     bench("MIE-REF with cutoff reference", mieRef);
     std::cout << "---------------------------------------\n";
@@ -521,10 +513,6 @@ int main(int argc, char **argv) {
     bench("MIE-O001 (fast_pow)", mieO001);
     std::cout << "---------------------------------------\n";
     bench("MIE-O010 (CSE)", mieO010);
-    std::cout << "---------------------------------------\n";
-    bench("MIE-O010_None (CSE_None)", mieO010_none); 
-    std::cout << "---------------------------------------\n";
-    bench("MIE-O010_powsimp (CSE_powsimp)", mieO010_powsimp); 
     std::cout << "---------------------------------------\n";
     bench("MIE-O100 (simplify)", mieO100);
     std::cout << "---------------------------------------\n";
@@ -559,28 +547,21 @@ int main(int argc, char **argv) {
                                                          64.3, 307.2, 1096.0, false);
     KryptonFunctorGenerated_Gen_Opt1110_without<ParticleType> kry_gen_full_opt(1.213e4, 2.821, -0.748, 0.972, 13.29,
                                                           64.3, 307.2, 1096.0, false);
-    KryptonFunctorGenerated_Gen_O000<ParticleType> kry_000(1.213e4, 2.821, -0.748, 0.972, 13.29,
+    KryptonFunctorGenerated_Gen_Opt000<ParticleType> kry_000(1.213e4, 2.821, -0.748, 0.972, 13.29,
                                                           64.3, 307.2, 1096.0, false, cutoff);
-    KryptonFunctorGenerated_Gen_O001<ParticleType> kry_001(1.213e4, 2.821, -0.748, 0.972, 13.29,
+    KryptonFunctorGenerated_Gen_Opt001<ParticleType> kry_001(1.213e4, 2.821, -0.748, 0.972, 13.29,
                                                           64.3, 307.2, 1096.0, false, cutoff);
-    KryptonFunctorGenerated_Gen_O010<ParticleType> kry_010(1.213e4, 2.821, -0.748, 0.972, 13.29,
+    KryptonFunctorGenerated_Gen_Opt010<ParticleType> kry_010(1.213e4, 2.821, -0.748, 0.972, 13.29,
                                                           64.3, 307.2, 1096.0, false, cutoff);
-
-    KryptonFunctorGenerated_Gen_Opt010_None<ParticleType> kry_010_none(1.213e4, 2.821, -0.748, 0.972, 13.29,
+    KryptonFunctorGenerated_Gen_Opt100<ParticleType> kry_100(1.213e4, 2.821, -0.748, 0.972, 13.29,
                                                           64.3, 307.2, 1096.0, false, cutoff);
-
-    KryptonFunctorGenerated_Gen_Opt010_powsimp<ParticleType> kry_010_powsimp(1.213e4, 2.821, -0.748, 0.972, 13.29,
+    KryptonFunctorGenerated_Gen_Opt101<ParticleType> kry_101(1.213e4, 2.821, -0.748, 0.972, 13.29,
                                                           64.3, 307.2, 1096.0, false, cutoff);
-
-    KryptonFunctorGenerated_Gen_O100<ParticleType> kry_100(1.213e4, 2.821, -0.748, 0.972, 13.29,
+    KryptonFunctorGenerated_Gen_Opt110<ParticleType> kry_110(1.213e4, 2.821, -0.748, 0.972, 13.29,
                                                           64.3, 307.2, 1096.0, false, cutoff);
-    KryptonFunctorGenerated_Gen_O101<ParticleType> kry_101(1.213e4, 2.821, -0.748, 0.972, 13.29,
+    KryptonFunctorGenerated_Gen_Opt011<ParticleType> kry_011(1.213e4, 2.821, -0.748, 0.972, 13.29,
                                                           64.3, 307.2, 1096.0, false, cutoff);
-    KryptonFunctorGenerated_Gen_O110<ParticleType> kry_110(1.213e4, 2.821, -0.748, 0.972, 13.29,
-                                                          64.3, 307.2, 1096.0, false, cutoff);
-    KryptonFunctorGenerated_Gen_O011<ParticleType> kry_011(1.213e4, 2.821, -0.748, 0.972, 13.29,
-                                                          64.3, 307.2, 1096.0, false, cutoff);
-    KryptonFunctorGenerated_Gen_O111<ParticleType> kry_111(1.213e4, 2.821, -0.748, 0.972, 13.29,
+    KryptonFunctorGenerated_Gen_Opt111<ParticleType> kry_111(1.213e4, 2.821, -0.748, 0.972, 13.29,
                                                           64.3, 307.2, 1096.0, false, cutoff);
 
     KryptonFunctorGenerated_Gen_SoA<ParticleSoA> krp_soa(1.213e4, 2.821, -0.748, 0.972, 13.29,
@@ -589,22 +570,22 @@ int main(int argc, char **argv) {
     KryptonFunctor_Ref_SoA<ParticleSoA> kry_ref_soa(1.213e4, 2.821, -0.748, 0.972, 13.29,
                                                    64.3, 307.2, 1096.0, false, cutoff);
     
-    KryptonFunctorGenerated_Gen_O000_SoA<ParticleSoA> kry_o000_soa(1.213e4, 2.821, -0.748, 0.972, 13.29,
+    KryptonFunctorGenerated_Gen_Opt000_SoA<ParticleSoA> kry_o000_soa(1.213e4, 2.821, -0.748, 0.972, 13.29,
                                                                    64.3, 307.2, 1096.0, false, cutoff);
-    KryptonFunctorGenerated_Gen_O001_SoA<ParticleSoA> kry_o001_soa(1.213e4, 2.821, -0.748, 0.972, 13.29,
+    KryptonFunctorGenerated_Gen_Opt001_SoA<ParticleSoA> kry_o001_soa(1.213e4, 2.821, -0.748, 0.972, 13.29,
                                                                      64.3, 307.2, 1096.0, false, cutoff);
-    KryptonFunctorGenerated_Gen_O010_SoA<ParticleSoA> kry_o010_soa(1.213e4, 2.821, -0.748, 0.972, 13.29,
+    KryptonFunctorGenerated_Gen_Opt010_SoA<ParticleSoA> kry_o010_soa(1.213e4, 2.821, -0.748, 0.972, 13.29,
                                                                         64.3, 307.2, 1096.0, false, cutoff);
-    KryptonFunctorGenerated_Gen_O100_SoA<ParticleSoA> kry_o100_soa(1.213e4, 2.821, -0.748, 0.972, 13.29,
+    KryptonFunctorGenerated_Gen_Opt100_SoA<ParticleSoA> kry_o100_soa(1.213e4, 2.821, -0.748, 0.972, 13.29,
                                                                         64.3, 307.2, 1096.0, false, cutoff);    
-    KryptonFunctorGenerated_Gen_O101_SoA<ParticleSoA> kry_o101_soa(1.213e4, 2.821, -0.748, 0.972, 13.29,
+    KryptonFunctorGenerated_Gen_Opt101_SoA<ParticleSoA> kry_o101_soa(1.213e4, 2.821, -0.748, 0.972, 13.29,
                                                                         64.3, 307.2, 1096.0, false, cutoff);                
 
-    KryptonFunctorGenerated_Gen_O110_SoA<ParticleSoA> kry_o110_soa(1.213e4, 2.821, -0.748, 0.972, 13.29,
+    KryptonFunctorGenerated_Gen_Opt110_SoA<ParticleSoA> kry_o110_soa(1.213e4, 2.821, -0.748, 0.972, 13.29,
                                                                         64.3, 307.2, 1096.0, false, cutoff);    
-    KryptonFunctorGenerated_Gen_O011_SoA<ParticleSoA> kry_o011_soa(1.213e4, 2.821, -0.748, 0.972, 13.29,
+    KryptonFunctorGenerated_Gen_Opt011_SoA<ParticleSoA> kry_o011_soa(1.213e4, 2.821, -0.748, 0.972, 13.29,
                                                                         64.3, 307.2, 1096.0, false, cutoff);    
-    KryptonFunctorGenerated_Gen_O111_SoA<ParticleSoA> kry_o111_soa(1.213e4, 2.821, -0.748, 0.972, 13.29,
+    KryptonFunctorGenerated_Gen_Opt111_SoA<ParticleSoA> kry_o111_soa(1.213e4, 2.821, -0.748, 0.972, 13.29,
                                                                         64.3, 307.2, 1096.0, false, cutoff);
 
     bench("KRY-REF with cutoff reference", kry_ref);
@@ -620,11 +601,7 @@ int main(int argc, char **argv) {
     bench("KRY-O001 (fast_pow)", kry_001);
         std::cout << "---------------------------------------\n";
     bench("KRY-O010 (CSE)", kry_010);
-        std::cout << "---------------------------------------\n";
-    bench("KRY-O010 (CSE) none", kry_010_none);
-        std::cout << "---------------------------------------\n";
-    bench("KRY-O010 (CSE) powsimp", kry_010_powsimp);
-        std::cout << "---------------------------------------\n";
+              std::cout << "---------------------------------------\n";
     bench("KRY-O100 (simplify)", kry_100);
         std::cout << "---------------------------------------\n";
     bench("KRY-O101(simplify+fast_pow)", kry_101);
@@ -655,27 +632,25 @@ int main(int argc, char **argv) {
     GravFunctorReference<ParticleType> gRef(G, true, cutoff);
     GravFunctorReference_wo_cutoff<ParticleType> gRef_wo(G, true);
     GravityFunctor_Gen_Opt1110_without<ParticleType> gRef_wo_opt(G, true);
-    GravityFunctor_Gen_O000<ParticleType> go000(G, true, cutoff);
-    GravityFunctor_Gen_O001<ParticleType> go001(G, true, cutoff);
-    GravityFunctor_Gen_Opt010_None<ParticleType> go001_none(G, true, cutoff);
-    GravityFunctor_Gen_Opt010_powsimp<ParticleType> go001_powsimp(G, true, cutoff);
-    GravityFunctor_Gen_O010<ParticleType> go010(G, true, cutoff);
-    GravityFunctor_Gen_O100<ParticleType> go100(G, true, cutoff);
-    GravityFunctor_Gen_O101<ParticleType> go101(G, true, cutoff);
-    GravityFunctor_Gen_O110<ParticleType> go110(G, true, cutoff);
-    GravityFunctor_Gen_O011<ParticleType> go011(G, true, cutoff);
-    GravityFunctor_Gen_O111<ParticleType> go111(G, true, cutoff);
+    GravityFunctor_Gen_Opt000<ParticleType> go000(G, true, cutoff);
+    GravityFunctor_Gen_Opt001<ParticleType> go001(G, true, cutoff);
+    GravityFunctor_Gen_Opt010<ParticleType> go010(G, true, cutoff);
+    GravityFunctor_Gen_Opt100<ParticleType> go100(G, true, cutoff);
+    GravityFunctor_Gen_Opt101<ParticleType> go101(G, true, cutoff);
+    GravityFunctor_Gen_Opt110<ParticleType> go110(G, true, cutoff);
+    GravityFunctor_Gen_Opt011<ParticleType> go011(G, true, cutoff);
+    GravityFunctor_Gen_Opt111<ParticleType> go111(G, true, cutoff);
     
 
     GravityFunctor_Ref_SoA<ParticleSoA> gravRefSoa(G, true, cutoff);
-    GravityFunctor_Gen_O000_SoA<ParticleSoA> grav_o000_soa(G, true, cutoff);
-    GravityFunctor_Gen_O001_SoA<ParticleSoA> grav_o001_soa(G, true, cutoff);
-    GravityFunctor_Gen_O010_SoA<ParticleSoA> grav_o010_soa(G, true, cutoff);
-    GravityFunctor_Gen_O100_SoA<ParticleSoA> grav_o100_soa(G, true, cutoff);
-    GravityFunctor_Gen_O101_SoA<ParticleSoA> grav_o101_soa(G, true, cutoff);
-    GravityFunctor_Gen_O110_SoA<ParticleSoA> grav_o110_soa(G, true, cutoff);
-    GravityFunctor_Gen_O011_SoA<ParticleSoA> grav_o011_soa(G, true, cutoff);
-    GravityFunctor_Gen_O111_SoA<ParticleSoA> grav_o111_soa(G, true, cutoff);
+    GravityFunctor_Gen_Opt000_SoA<ParticleSoA> grav_o000_soa(G, true, cutoff);
+    GravityFunctor_Gen_Opt001_SoA<ParticleSoA> grav_o001_soa(G, true, cutoff);
+    GravityFunctor_Gen_Opt010_SoA<ParticleSoA> grav_o010_soa(G, true, cutoff);
+    GravityFunctor_Gen_Opt100_SoA<ParticleSoA> grav_o100_soa(G, true, cutoff);
+    GravityFunctor_Gen_Opt101_SoA<ParticleSoA> grav_o101_soa(G, true, cutoff);
+    GravityFunctor_Gen_Opt110_SoA<ParticleSoA> grav_o110_soa(G, true, cutoff);
+    GravityFunctor_Gen_Opt011_SoA<ParticleSoA> grav_o011_soa(G, true, cutoff);
+    GravityFunctor_Gen_Opt111_SoA<ParticleSoA> grav_o111_soa(G, true, cutoff);
 
 
   
@@ -693,10 +668,6 @@ int main(int argc, char **argv) {
     bench("GRAV-O001 (fast_pow)", go001);
         std::cout << "---------------------------------------\n";
     bench("GRAV-O010 (CSE)", go010);
-        std::cout << "---------------------------------------\n";
-    bench("GRAV-O010 (CSE) none", go001_none);
-        std::cout << "---------------------------------------\n";
-    bench("GRAV-O010 (CSE) powsimp", go001_powsimp);
         std::cout << "---------------------------------------\n";
     bench("GRAV-O100 (simplify)", go100);
         std::cout << "---------------------------------------\n";

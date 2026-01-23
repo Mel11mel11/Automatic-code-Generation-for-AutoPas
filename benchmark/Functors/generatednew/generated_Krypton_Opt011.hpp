@@ -87,19 +87,14 @@ public:
         const double tt15 = tt_arr[15];
         const double tt16 = tt_arr[16];
         const double x0 = std::exp(-b*r);
-        const double x1 = tt10*x0;
-        const double x2 = fast_pow(C10, 3);
-        const double x3 = std::pow(C8, -3);
-        const double x4 = b*x0;
-        const double x5 = fast_pow(C10, 6);
-        const double x6 = fast_pow(C6, 3);
-        const double x7 = std::pow(C8, -8);
-        const double x8 = fast_pow(C10, 10);
-        const double x9 = fast_pow(C6, 6);
-        const double x10 = std::pow(C8, -15);
-        const double x11 = fast_pow(r, 2);
+        const double x1 = b*x0;
+        const double x2 = C6*x1;
+        const double x3 = std::pow(C10, 3)/std::pow(C8, 3);
+        const double x4 = std::pow(C10, 6)*std::pow(C6, 3)/std::pow(C8, 8);
+        const double x5 = std::pow(C10, 10)*std::pow(C6, 6)/std::pow(C8, 15);
+        const double x6 = std::pow(r, 2);
 
-        const double Fmag = -A*(a1 + 2*a2*r - a_m1/x11)*std::exp(a1*r + a2*x11 + a_m1/r) + C10*(b*x1 - tt9*x4)/fast_pow(r, 10) - 10*C10*(1 - x1)/fast_pow(r, 11) + C6*(b*tt6*x0 - tt5*x4)/fast_pow(r, 6) - 6*C6*(-tt6*x0 + 1)/fast_pow(r, 7) + C6*x2*x3*(b*tt12*x0 - tt11*x4)/fast_pow(r, 12) - 12*C6*x2*x3*(-tt12*x0 + 1)/fast_pow(r, 13) + C8*(b*tt8*x0 - tt7*x4)/fast_pow(r, 8) - 8*C8*(-tt8*x0 + 1)/fast_pow(r, 9) + x5*x6*x7*(b*tt14*x0 - tt13*x4)/fast_pow(r, 14) - 14*x5*x6*x7*(-tt14*x0 + 1)/fast_pow(r, 15) + x10*x8*x9*(b*tt16*x0 - tt15*x4)/fast_pow(r, 16) - 16*x10*x8*x9*(-tt16*x0 + 1)/fast_pow(r, 17);
+        const double Fmag = -A*(a1 + 2*a2*r - a_m1/x6)*std::exp(a1*r + a2*x6 + a_m1/r) + C10*x1*(tt10 - tt9)/std::pow(r, 10) + 10*C10*(tt10*x0 - 1)/std::pow(r, 11) + 6*C6*(tt6*x0 - 1)/std::pow(r, 7) + 12*C6*x3*(tt12*x0 - 1)/std::pow(r, 13) - C8*x1*(tt7 - tt8)/std::pow(r, 8) + 8*C8*(tt8*x0 - 1)/std::pow(r, 9) - x2*(tt5 - tt6)/std::pow(r, 6) - x2*x3*(tt11 - tt12)/std::pow(r, 12) - x1*x4*(tt13 - tt14)/std::pow(r, 14) + 14*x4*(tt14*x0 - 1)/std::pow(r, 15) - x1*x5*(tt15 - tt16)/std::pow(r, 16) + 16*x5*(tt16*x0 - 1)/std::pow(r, 17);
 
         const double fx = Fmag * dx * inv_r;
         const double fy = Fmag * dy * inv_r;

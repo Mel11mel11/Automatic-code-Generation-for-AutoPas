@@ -51,7 +51,7 @@ public:
 
 
 
-        const double Fmag = -G*fast_pow(inv_r, 2)*p1m*p2m;
+        const double Fmag = -G*std::pow(inv_r, 2)*p1m*p2m;
 
         const double fx = Fmag * dx * inv_r;
         const double fy = Fmag * dy * inv_r;

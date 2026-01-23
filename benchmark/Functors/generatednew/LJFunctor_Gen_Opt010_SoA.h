@@ -72,9 +72,10 @@ public:
                 const double inv_r = 1.0 / r;
 
 
+                const double x0 = std::pow(sigma, 6);
 
                 // Contract: Fmag == fr == -dU/dr (scalar)
-                const double Fmag = -4*epsilon*(-12*std::pow(inv_r, 13)*std::pow(sigma, 12) + 6*std::pow(inv_r, 7)*std::pow(sigma, 6));
+                const double Fmag = 24*epsilon*std::pow(inv_r, 7)*x0*(2*std::pow(inv_r, 6)*x0 - 1);
 
                 // Convert to vector: F_vec = fr * r_vec / r
                 const double Fx = Fmag * dx * inv_r;

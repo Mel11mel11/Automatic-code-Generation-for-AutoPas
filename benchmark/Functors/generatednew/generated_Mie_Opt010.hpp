@@ -55,7 +55,7 @@ public:
 
         const double x0 = inv_r*sigma;
 
-        const double Fmag = -C*epsilon*(inv_r*m*std::pow(x0, m) - inv_r*n*std::pow(x0, n));
+        const double Fmag = -C*epsilon*inv_r*(m*std::pow(x0, m) - n*std::pow(x0, n));
 
         const double fx = Fmag * dx * inv_r;
         const double fy = Fmag * dy * inv_r;
