@@ -1,16 +1,16 @@
 Newton3 = 0
 
 === Lennard-Jones ===
-max|ΔF|      = 2.66454e-15
-max|F_ref|   = 5.5933
-relative err = 4.76379e-16
-RELERR 4.76379e-16
+max|ΔF|      = 0
+max|F_ref|   = 0
+relative err = 0
+RELERR 0
 
 === Mie Potential ===
-max|ΔF|      = 1.77636e-15
-max|F_ref|   = 5.5933
-relative err = 3.17586e-16
-RELERR 3.17586e-16
+max|ΔF|      = 0
+max|F_ref|   = 0
+relative err = 0
+RELERR 0
 
 === Gravity ===
 max|ΔF|      = 4.1359e-25
@@ -19,7 +19,7 @@ relative err = 3.77546e-16
 RELERR 3.77546e-16
 
 === Krypton ===
-max|ΔF|      = 0.000994071
-max|F_ref|   = 4.95608e+07
-relative err = 2.00576e-11
-RELERR 2.00576e-11
+max|ΔF|      = 0
+max|F_ref|   = 0
+relative err = 0
+RELERR 0

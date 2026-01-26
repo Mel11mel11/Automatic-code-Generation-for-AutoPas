@@ -23,24 +23,21 @@ def replace_pow(expression: str) -> str:
         base = m.group(1).strip()
         exp  = int(m.group(2))
         if 0 <= exp <= 20:
-            if exp == 0:  return "1.0"
-            if exp == 1:  return base
+            if exp == 0: return "1.0"
+            if exp == 1: return base
             return f"fast_pow({base}, {exp})"
-        else:
-            return f"std::pow({base}, {exp})"
+        return f"std::pow({base}, {exp})"
+
     out = _POW_INT.sub(repl, expression)
-    out = re.sub(r'\bpow\s*\(', 'std::pow(', out)
+    out = re.sub(r'(?<!std::)\bpow\s*\(', 'std::pow(', out)
     return out
+
 
 def fix_exp(expr: str, funcs: Iterable[str] = FUNCS) -> str:
     out = expr
 
-    
-    out = re.sub(r'\bfast_pow\s*\(', 'std::pow(', out)
-    out = re.sub(r'\bpow\s*\(', 'std::pow(', out)
-
     for fn in funcs:
-        if fn == "pow":
+        if fn in ("pow", "fast_pow"):
             continue
         out = make_pattern(fn).sub(f"std::{fn}(", out)
 

@@ -21,8 +21,8 @@
 
 
 std::vector<Particle> makeGrid(int N, double spacing) {
-    std::vector<Particle> ps;
-    ps.reserve(N*N*N);
+    std::vector<Particle> ps; // create particles in a grid
+    ps.reserve(N*N*N); // make volume and reserve space
     int id = 0;
 
     for(int x=0;x<N;x++)
@@ -110,8 +110,9 @@ int main() {
 
     const double sigma = 1.0;
     const double epsilon = 1.0;
-    const int n = 12, m = 6;
+    const int n = 10, m = 6;
     const double G = 6.67430e-11;
+    double cutoff= 0.3;
 
     // Krypton params --------------------
     const double A   = 5.2239e3;
@@ -122,7 +123,7 @@ int main() {
     const double C6   = 2.451e2;
     const double C8   = 1.684e4;
     const double C10  = 1.618e6;
-    const double cutoff = 2.5;
+
     std::cout << "Newton3 = " << newton3 << "\n";
 
     // Lennard-Jones

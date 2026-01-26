@@ -6,6 +6,7 @@ from dataclasses import dataclass
 import yaml_loader as yl  # my helper: reads YAML specs (potentials, params, options)
 import validation as valid  # my helper: checks the YAML fields and fills defaults
 from replace import fix_exp  # small helper: converts SymPy exp(...) to C++ std::exp(...) etc.
+from replace import replace_pow  # replaces std::pow(a, n) by fast_pow(a, n) for small integer n
 from sympy.printing.cxx import CXX11CodePrinter  # SymPy printer base for C++ code generation
 from mako.lookup import TemplateLookup  # templating for C++ header generation
 import emit_header as em  # my helper: writes the final AoS header (C++ functor)
@@ -307,11 +308,17 @@ def calculate_force(expr_str, param_names, add_dispersion: bool, opt: Optimizati
         repl, reduced = [], F
 
     # Convert CSE temporaries into C++ lines
-    temp_lines = [
-        f"const double {s} = {fix_exp(emit_expr(rhs, add_dispersion, opt))};"
-        for s, rhs in repl
-    ]
-
+    #temp_lines = [
+      #  f"const double {s} = {fix_exp(emit_expr(rhs, add_dispersion, opt))};"
+       # for s, rhs in repl
+    #]
+    temp_lines = []
+    for s, rhs in repl:
+        rhs_cpp = emit_expr(rhs, add_dispersion, opt)
+        rhs_cpp = fix_exp(rhs_cpp)
+        if opt.fast_pow:
+             rhs_cpp = replace_pow(rhs_cpp)
+        temp_lines.append(f"const double {s} = {rhs_cpp};")
     # Merge TT prelude + CSE temporaries
     temps_code = tt_prelude
     if tt_prelude and temp_lines:
@@ -319,7 +326,11 @@ def calculate_force(expr_str, param_names, add_dispersion: bool, opt: Optimizati
     temps_code += "\n        ".join(temp_lines)
 
     # Final force expression in C++ form
-    force_expr = fix_exp(emit_expr(reduced, add_dispersion, opt))
+    force_expr = emit_expr(reduced, add_dispersion, opt)
+    force_expr = fix_exp(force_expr)
+    if opt.fast_pow:
+        force_expr = replace_pow(force_expr)
+
     return temps_code, force_expr
 
 
