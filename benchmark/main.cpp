@@ -408,7 +408,7 @@ int main(int argc, char **argv) {
 
   const double cutoff = 2.0;
   const double sigma = 1.0, epsilon = 1.0;
-  const int n = 3 , m = 6;
+  const int n = 10 , m = 6;
   const double G = 6.67430e-11;
   const bool newton3 = false;
   #include <stdexcept>
