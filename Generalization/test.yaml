@@ -1,9 +1,9 @@
 #This data is used to test the generalization capabilities of a model across different scenarios.     
 name: LennardJones
 expression: "4*epsilon*((sigma/r)**12 - (sigma/r)**6)"
-parameters: {sigma: 1.0, epsilon: 1.0}
+parameters: {sigma: , epsilon: }
 output: {classname: LJFunctor_Gen, filename: generated_LJ.hpp}
-options: {newton3: true, soa: true, cutoff: 3.0}     
+options: {soa: false }     
 ---
 name: Gravity
 expression: "-G*p1m*p2m / r"
@@ -13,25 +13,23 @@ output:
   classname: GravityFunctor_Gen
   filename: generated_Gravity.hpp
 options:
-  newton3: true
   soa: true 
-  cutoff: 3.0     
+  
 
 ---
 name: Mie_Potential
 expression: "C*epsilon*((sigma/r)**n - (sigma/r)**m)"
 parameters:
-  sigma: 3.4
-  epsilon: 120.0
+  sigma: 1.0
+  epsilon: 1.0
   n: 12
   m: 6
 output:
   classname: MieFunctor_Gen
   filename: generated_Mie.hpp
 options:
-  newton3: true
   soa: true 
-  cutoff: 3.0     
+     
 
 ---
 name: Krypton_TangToennies
@@ -61,9 +59,7 @@ output:
   filename: generated_Krypton.hpp
 
 options:
-  newton3: true
-  soa: true
-  cutoff: 3.0      
+  soa: true     
 
 
 
