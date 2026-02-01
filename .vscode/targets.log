@@ -6,11 +6,8 @@ make all --print-data-base --no-builtin-variables --no-builtin-rules --question
 # PARTICULAR PURPOSE.
 
 # This program built for i386-apple-darwin11.3.0
- 
-make: *** No rule to make target `all'.  Stop.
 
-
-# Make data base, printed on Mon Jan 26 22:21:07 2026
+# Make data base, printed on Fri Jan 30 23:19:37 2026
 
 # Variables
 
@@ -56,8 +53,6 @@ PATH = /Users/melisaaslan/.local/bin:/Users/melisaaslan/.local/bin:/opt/anaconda
 SDKMAN_DIR = /Users/melisaaslan/.sdkman
 # environment
 SDKMAN_CANDIDATES_API = https://api.sdkman.io/2
-# environment
-LaunchInstanceID = 1F4F9E83-135B-45AC-AE9D-7DFB071A860E
 # environment
 SDKMAN_PLATFORM = darwinarm64
 # environment
@@ -148,8 +143,6 @@ XPC_SERVICE_NAME = application.com.microsoft.VSCode.22767268.22767274
 HOMEBREW_PREFIX = /opt/homebrew
 # automatic
 +D = $(patsubst %/,%,$(dir $+))
-# environment
-VSCODE_L10N_BUNDLE_LOCATION = file:///Users/melisaaslan/.vscode/extensions/ms-ceintl.vscode-language-pack-de-1.91.2024071009/translations/extensions/vscode.json-language-features.i18n.json
 # automatic
 +F = $(notdir $+)
 # environment
@@ -168,8 +161,6 @@ SDKMAN_CANDIDATES_DIR = /Users/melisaaslan/.sdkman/candidates
 LC_ALL = C
 # environment
 CONDA_PYTHON_EXE = /opt/anaconda3/bin/python
-# environment
-SECURITYSESSIONID = 186af
 # automatic
 ^F = $(notdir $^)
 # default
@@ -181,11 +172,11 @@ MAKELEVEL := 0
 # environment
 CONDA_PREFIX = /opt/anaconda3
 # environment
-VSCODE_PID = 1810
+VSCODE_PID = 38973
 # environment
 LANG = C
 # variable set hash-table stats:
-# Load=85/1024=8%, Rehash=0, Collisions=2/106=2%
+# Load=82/1024=8%, Rehash=0, Collisions=2/103=2%
 
 # Pattern-specific Variable Values
 
@@ -193,9 +184,9 @@ LANG = C
 
 # Directories
 
-# . (device 16777230, inode 85424071): 9 files, no impossibilities.
+# . (device 16777230, inode 91611356): 8 files, no impossibilities.
 
-# 9 files, no impossibilities in 1 directories.
+# 8 files, no impossibilities in 1 directories.
 
 # Implicit Rules
 
@@ -266,8 +257,10 @@ GNUmakefile:
 # # of strcache buffers: 0
 # strcache size: total = 0 / max = 0 / min = 4096 / avg = 0
  
+make: *** No rule to make target `all'.  Stop.
+
 # strcache free: total = 0 / max = 0 / min = 4096 / avg = 0
 
-# Finished Make data base on Mon Jan 26 22:21:07 2026
+# Finished Make data base on Fri Jan 30 23:19:38 2026
 
  

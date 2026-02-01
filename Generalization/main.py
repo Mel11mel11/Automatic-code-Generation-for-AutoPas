@@ -346,7 +346,6 @@ def generate_soa(cfg: dict, out_dir: str, opt: Optimizations):
     params = cfg["parameters"]
     param_names = list(params.keys())
 
-    # cutoff is optional in YAML
     cutoff = cfg.get("cutoff")
     cutoff_enabled = cutoff is not None
     cutoff_value = float(cutoff) if cutoff_enabled else 0.0
