@@ -1,30 +1,31 @@
 import yaml
-import os
-import sys
-# this function reads the test_yaml data and returns a list of potential definitions
-def load_yaml(file_path):
+
+
+def load_yaml(file_path: str) -> list[dict]:
+    """
+    Read a YAML file that may contain one or more potential specs (separated by ---).
+    Returns a flat list of raw potential definition dicts.
+    """
     try:
         with open(file_path, "r") as f:
             docs = list(yaml.safe_load_all(f))
-    except OSError as e: # file not found or cannot be opened
+    except OSError as e:
         raise RuntimeError(f"Cannot open YAML file: {file_path}") from e
 
-    items = []  # empty list to store potential definitions
+    items = []
 
-    for doc in docs: # iterate through each document in the YAML file
+    for doc in docs:
         if not doc:
             continue
 
+        # A file may group multiple potentials under a "potentials:" key
         if isinstance(doc, dict) and "potentials" in doc:
-            for p in doc["potentials"]: # iterate through each potential definition
-                items.append(p) # add potential definition to the list
-
-        elif isinstance(doc, dict): # single potential definition as a dictionary
-            items.append(doc) # add potential definition to the list
+            for p in doc["potentials"]:
+                items.append(p)
+        elif isinstance(doc, dict):
+            items.append(doc)
 
     if not items:
-        raise ValueError( 
-            f"No valid potential definitions found in YAML file: {file_path}" # raise error if no definitions found
-        )
+        raise ValueError(f"No valid potential definitions found in: {file_path}")
 
     return items

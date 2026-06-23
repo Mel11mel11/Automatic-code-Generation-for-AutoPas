@@ -16,7 +16,7 @@ from sympy.printing.cxx import cxxcode  # standard SymPy -> C++ printer
 lookup = TemplateLookup(directories=["templates"])
 
 
-@dataclass()  # dataclass is just a compact way to store config values
+@dataclass() 
 class Optimizations:
     """
     This class stores which symbolic optimizations should be applied.
