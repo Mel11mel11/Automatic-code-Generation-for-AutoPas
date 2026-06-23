@@ -64,7 +64,6 @@ public:
                 double r2 = dx * dx + dy * dy + dz * dz;
                 r2 = std::max(r2, EPS);
 
-                if (cutoff > 0.0 && r2 > cutoff2) continue;
 
                 // --- define r and inv_r consistently ---
                 const double r = std::sqrt(r2);

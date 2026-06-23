@@ -2,7 +2,6 @@
 #pragma once
 #define USE_FAST_POW
 
-
 #include "../Functors/Functor.h"
 #include "../Particle.h"
 #include <cmath>
@@ -11,7 +10,6 @@
 #ifdef USE_FAST_POW
 #include "FastPow.hpp"
 #endif
-
 
 template <class Particle_T>
 class LJFunctor_Gen_Opt011 : public Functor<Particle_T> {
@@ -33,13 +31,14 @@ public:
         constexpr double EPS = 1e-24;
         double r2 = dx*dx + dy*dy + dz*dz;
         if (r2 < EPS) r2 = EPS;
+
         const double cutoff = _cutoff;
         const double cutoff2 = cutoff * cutoff;
         if (cutoff > 0.0 && r2 > cutoff2) return;
+
         const double r = std::sqrt(r2);
         const double inv_r = 1.0 / r;
 
-        // Parameter aliases
         const double sigma = _sigma;
         const double epsilon = _epsilon;
 
@@ -47,7 +46,6 @@ public:
         const double p1m = p1.getMass();
         const double p2m = p2.getMass();
         #endif
-
 
         const double x0 = fast_pow(sigma, 6);
 
